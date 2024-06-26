@@ -1,0 +1,138 @@
+<template>
+    <template if:true={showModel}>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open">
+            <c-message-popup></c-message-popup>
+            <div class="spinner-div" if:true={doShowSpinner}>
+                <c-spinner></c-spinner>
+            </div>
+            <div class="main-div">
+                <div class="image-div">
+                    <img class="image" onload={imageLoaded} src={popupimg} alt="New Template Image">
+                </div>
+                <div class="form-div">
+                    <div class="close-div" onclick={closeModel}>
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M20.7334 2.5537C20.8179 2.46918 20.885 2.36885 20.9307 2.25843C20.9765 2.14801 21 2.02966 21 1.91013C21 1.79061 20.9765 1.67226 20.9307 1.56184C20.885 1.45142 20.8179 1.35109 20.7334 1.26657C20.6489 1.18206 20.5486 1.11502 20.4382 1.06928C20.3277 1.02354 20.2094 1 20.0899 1C19.9703 1 19.852 1.02354 19.7416 1.06928C19.6311 1.11502 19.5308 1.18206 19.4463 1.26657L11 9.71469L2.5537 1.26657C2.46918 1.18206 2.36885 1.11502 2.25843 1.06928C2.14801 1.02354 2.02966 1 1.91013 1C1.79061 1 1.67226 1.02354 1.56184 1.06928C1.45142 1.11502 1.35109 1.18206 1.26657 1.26657C1.18206 1.35109 1.11502 1.45142 1.06928 1.56184C1.02354 1.67226 1 1.79061 1 1.91013C1 2.02966 1.02354 2.14801 1.06928 2.25843C1.11502 2.36885 1.18206 2.46918 1.26657 2.5537L9.71469 11L1.26657 19.4463C1.09589 19.617 1 19.8485 1 20.0899C1 20.3312 1.09589 20.5627 1.26657 20.7334C1.43726 20.9041 1.66875 21 1.91013 21C2.15152 21 2.38301 20.9041 2.5537 20.7334L11 12.2853L19.4463 20.7334C19.617 20.9041 19.8485 21 20.0899 21C20.3312 21 20.5627 20.9041 20.7334 20.7334C20.9041 20.5627 21 20.3312 21 20.0899C21 19.8485 20.9041 19.617 20.7334 19.4463L12.2853 11L20.7334 2.5537Z" fill="black" stroke="black"/>
+                            </svg>
+                                                                   
+                    </div>
+                    <div class="title-div">
+                        <template if:true={isGoogleDrive}><p>Connect Google Drive</p></template>
+                        <template if:true={isDropbox}><p>Connet Dropbox</p></template>
+                        <template if:true={isOneDrive}><p>Connect OneDrive</p></template>
+                        <template if:true={isAws}><p>Connect AWS</p></template>
+                    </div>
+                    <template if:true={isRedirectUri}>
+                        <div class="label-float">
+                            <input type="text" class="t-name copy" placeholder="Redirect Url" value={redirecturi}/>
+                            <label>Redirect URI</label>
+                        </div>
+                        <div class="icon-copy">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="20" viewBox="0 0 17 20" fill="none" onclick={copyToClipboard}>
+                                    <path d="M16.7587 5.89744L10.6935 0.225641C10.5394 0.0813411 10.3303 0.000179541 10.1123 0H7.40323C6.6033 0 5.83613 0.29716 5.2705 0.826109C4.70487 1.35506 4.3871 2.07247 4.3871 2.82051V4.10256H3.01613C2.2162 4.10256 1.44904 4.39972 0.883404 4.92867C0.31777 5.45762 0 6.17503 0 6.92308V17.1795C0 17.9275 0.31777 18.6449 0.883404 19.1739C1.44904 19.7028 2.2162 20 3.01613 20H10.6935C11.4935 20 12.2606 19.7028 12.8263 19.1739C13.3919 18.6449 13.7097 17.9275 13.7097 17.1795V15.8974H13.9839C14.7838 15.8974 15.551 15.6003 16.1166 15.0713C16.6822 14.5424 17 13.825 17 13.0769V6.41026C16.9914 6.21703 16.9052 6.03393 16.7587 5.89744ZM10.9677 2.62564L14.1923 5.64103H10.9677V2.62564ZM12.0645 17.1795C12.0645 17.5195 11.9201 17.8456 11.663 18.086C11.4059 18.3265 11.0572 18.4615 10.6935 18.4615H3.01613C2.65253 18.4615 2.30381 18.3265 2.04671 18.086C1.7896 17.8456 1.64516 17.5195 1.64516 17.1795V6.92308C1.64516 6.58306 1.7896 6.25696 2.04671 6.01653C2.30381 5.7761 2.65253 5.64103 3.01613 5.64103H4.3871V13.0769C4.3871 13.825 4.70487 14.5424 5.2705 15.0713C5.83613 15.6003 6.6033 15.8974 7.40323 15.8974H12.0645V17.1795ZM13.9839 14.359H7.40323C7.03962 14.359 6.69091 14.2239 6.43381 13.9835C6.1767 13.743 6.03226 13.4169 6.03226 13.0769V2.82051C6.03226 2.48049 6.1767 2.1544 6.43381 1.91397C6.69091 1.67353 7.03962 1.53846 7.40323 1.53846H9.32258V6.41026C9.32542 6.61344 9.413 6.80756 9.56665 6.95125C9.7203 7.09493 9.92788 7.17683 10.1452 7.17949H15.3548V13.0769C15.3548 13.4169 15.2104 13.743 14.9533 13.9835C14.6962 14.2239 14.3475 14.359 13.9839 14.359Z" fill="#00AEFF"/>
+                                </svg>
+                            </div>
+                    </template>
+                    <template if:true={isAws}>
+                        <div class="label-float">
+                            <input type="text" class="t-name" placeholder="Enter Nickname" onkeyup={handleNickname} onblur={handleNickname}/>
+                            <label>Nickname</label>
+                        </div>
+                    </template>
+                    <template if:false={isGoogleDrive}>
+                        <div class="label-float">
+                            <input type="text" class="t-clientid" placeholder="Enter Client Id" onkeyup={handleClientId} onblur={handleClientId}/>
+                            <label>Client Id</label>
+                        </div>
+                    </template>
+                    <template if:false={isGoogleDrive}>
+                        <div class="label-float">
+                            <input type="password" class="t-clientsecret" placeholder="Enter Client Secret" onkeyup={handleClientSecret} onblur={handleClientSecret}/>
+                            <label>Client Secret</label>
+                        </div>
+                    </template>
+                    <template if:true={isAws}>
+                        <div class="label-float">
+                            <input type="text" class="t-bucket" placeholder="Enter Bucket Name" onkeyup={handleBucket} onblur={handleBucket}/>
+                            <label>Bucket Name</label>
+                        </div>
+                    </template>
+                    <div if:true={isGoogleDrive} style="width: 100%;">
+                        <button class="auth-btn" onclick={handleGenAuthCode} style="width: 100%;">Generate Authorization Code</button>
+                    </div>
+                    <template if:true={isGoogleDrive}>
+                        <div class="label-float">
+                            <input type="text" class="t-authorizationcode" placeholder="Enter Authorization code" onkeyup={handleAuthorizationCode} onblur={handleAuthorizationCode}/>
+                            <label>Authorization Code</label>
+                        </div>
+                    </template>
+                    
+
+                    <!-- <div class="select-label-float">
+                        <label>Source Object</label>
+                        <select onchange={handleObjectChange} class="select-dropdown object-dd">
+                            <option value="">--Select Object--</option>
+                            <template for:each={objectNames} for:item="option">
+                                <option key={option.name} value={option.apiName}>{option.name}</option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="select-label-float">
+                        <label>Template Type</label>
+                        <select onchange={handleTypeChange} class="select-dropdown type-dd">
+                            <option value="">--Select Template Type--</option>
+                            <template for:each={templateTypes} for:item="option">
+                                <option key={option} value={option}>{option}</option>
+                            </template>
+                        </select>
+                    </div> -->
+                    <!-- <div class="drag-drop-div" if:true={showRowColumn}>
+                        <div class="row ">
+                            <div class="input-num-div column">
+                                <div class="minus1" onclick={minusClick}>
+                                    <svg width="8" height="2" viewBox="0 0 8 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.97495 0.979167C7.94154 1.125 7.74113 1.25 7.4739 1.25H0.526096C0.258873 1.25 0.0584551 1.14583 0.0250522 0.979167C-0.00835073 0.729167 -0.00835073 0.5 0.0250522 0.270833C0.0584551 0.125 0.258873 0 0.526096 0H7.4739C7.74113 0 7.94154 0.125 7.97495 0.270833C8.00835 0.520833 8.00835 0.75 7.97495 0.979167Z" fill="black"/>
+                                    </svg>
+                                </div>
+                                    
+                                <div class="label-float">
+                                    <input class="num-input num-input1" type="number" value="1" min="1" max="3" onkeyup={handleColumnChange} onchange={handleColumnChange}/>
+                                    <label class="label-float-input">Columns</label>
+                                </div>
+                                <div class="plus1" onclick={plusClick}>
+                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M5 1V9M1 5H9" stroke="black" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>                                    
+                                </div>
+                                <div class="minus2" onclick={minusClick}>
+                                    <svg width="8" height="2" viewBox="0 0 8 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.97495 0.979167C7.94154 1.125 7.74113 1.25 7.4739 1.25H0.526096C0.258873 1.25 0.0584551 1.14583 0.0250522 0.979167C-0.00835073 0.729167 -0.00835073 0.5 0.0250522 0.270833C0.0584551 0.125 0.258873 0 0.526096 0H7.4739C7.74113 0 7.94154 0.125 7.97495 0.270833C8.00835 0.520833 8.00835 0.75 7.97495 0.979167Z" fill="black"/>
+                                    </svg>
+                                </div>
+                                <div class="label-float">
+                                    <input class="num-input num-input2" type="number" value="1" min="1" max="5" onkeyup={handleRowChange} onchange={handleRowChange}/>
+                                    <label class="label-float-input">Rows</label>
+                                </div>
+                                <div class="plus2" onclick={plusClick}>
+                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M5 1V9M1 5H9" stroke="black" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>                                    
+                                </div>
+
+                            </div>
+                            <div class="preview-div column">
+                                    <template for:each={cellDivs} for:item="cell" for:index="index">
+                                        <div key={cell}  class={cell}></div>
+                                    </template>
+                            </div>
+                        </div>
+                    </div> -->
+                    <div class="save-div">
+                        <button class="save-btn slds-button slds-button_brand" disabled onclick={authorize}>Authorize</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+    </template>
+</template>
