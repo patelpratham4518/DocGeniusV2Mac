@@ -563,7 +563,13 @@ public with sharing class GoogleDocPreview {
     public static List<List<List<String>>> formatTableRecords(List<Object> bodyContentNew,String recordId,String objectApiName) {
         try {
             List<Table> tables = new List<Table>();
-            List<String> childQueries = new List<String>();
+            List<Query> childQueriesAll = new List<Query>();
+
+            Query initialQuery  = new Query();
+            initialQuery.crns = new List<String>();
+            initialQuery.queries = new List<String>();
+            childQueriesAll.add(initialQuery);
+
             for (Object newElement : bodyContentNew) {
                 Map<String, Object> newElementMap = (Map<String, Object>) newElement;
                 if (newElementMap.containsKey('table')) {
@@ -574,22 +580,41 @@ public with sharing class GoogleDocPreview {
                     Table table = getChildQuery(secondRow, thirdRow, recordId, objectApiName);
                     if (table != null) {
                         tables.add(table);
-                        childQueries.add(table.childQuery);
+
+                        if (childQueriesAll[childQueriesAll.size()-1].crns.contains(table.crn)) {
+                            Query newMainQuery = new Query();
+                            newMainQuery.queries = new List<String>{table.childQuery};
+                            newMainQuery.crns = new List<String>{table.crn};
+                            childQueriesAll.add(newMainQuery);
+                        } else {
+                            childQueriesAll[childQueriesAll.size()-1].queries.add(table.childQuery);
+                            childQueriesAll[childQueriesAll.size()-1].crns.add(table.crn);
+                        }
                     }else {
                         tables.add(new Table());
                     }
                 }
                 
             }
-            
-            String queryString = 'SELECT '+String.join(childQueries, ',')+' FROM ' + objectApiName + ' WHERE Id=:recordId';
-            SObject mainObject = Database.query(queryString);
 
-            List<List<List<String>>> allTableRecords = setTableRecordsFromMainRecord(mainObject, tables);
+            
+
+            for (Query query : childQueriesAll) {
+                String queryString = 'SELECT '+String.join(query.queries, ',')+' FROM ' + objectApiName + ' WHERE Id=:recordId';
+                query.query = queryString;
+                query.mainObject = Database.query(queryString);
+            }
+
+            // String queryString = 'SELECT '+String.join(childQueriesAll, ',')+' FROM ' + objectApiName + ' WHERE Id=:recordId';
+            // SObject mainObject = Database.query(queryString);
+
+            List<List<List<String>>> allTableRecords = setTableRecordsFromMainRecord(childQueriesAll, tables);
             return allTableRecords;
             
         } catch (Exception e) {
             System.debug('Error In formatTableRecords ==> '+e.getMessage());
+            System.debug(e.getCause());
+            System.debug(e.getStackTraceString());
             return null;
         }
 
@@ -684,15 +709,24 @@ public with sharing class GoogleDocPreview {
         public List<List<String>> tableRecords;
     }
 
-    public static List<List<List<String>>> setTableRecordsFromMainRecord(SObject mainObject,List<Table> tables) {
+    public static List<List<List<String>>> setTableRecordsFromMainRecord(List<Query> childQueriesAll,List<Table> tables) {
         
         List<List<List<String>>> allTableRecords = new List<List<List<String>>>();
+        Integer queryNo = 0;
+        Query query =  childQueriesAll[queryNo];
         for (Table table : tables) {
             try {
                 if (table.crn != null) {
-              
+
+                    if(!query.crns.contains(table.crn)){
+                        queryNo++;
+                        query = childQueriesAll[queryNo];
+                    }
+                    SObject mainObject = query.mainObject;
+
                     List<Object> records = (List<Object>) mainObject.getPopulatedFieldsAsMap().get(table.crn);
-    
+                    query.crns.remove(query.crns.indexOf(table.crn));
+
                     List<List<String>> tableRecords = new LiSt<List<String>>();
                     for (Object record : records) {
                         List<String> row = new List<String>();
@@ -722,7 +756,6 @@ public with sharing class GoogleDocPreview {
                         }
                     }
         
-    
                     allTableRecords.add(tableRecords);
                 } else {
                     allTableRecords.add(null);
@@ -735,5 +768,14 @@ public with sharing class GoogleDocPreview {
 
         return allTableRecords;
     }
+
+    public  class Query {
+        public String query;
+        public List<String> crns;
+        public List<String> queries;
+        public SObject mainObject;
+    }
+
+
 
 }
