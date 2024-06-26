@@ -164,7 +164,8 @@ public with sharing class GoogleDocPreview {
             Integer tableOffset = 0;
             Integer currentTableOffset = 0;
 
-            formatTableRecords(bodyContentNew,recordId,objectApiName);
+            List<List<List<String>>> allTableRecords = formatTableRecords(bodyContentNew,recordId,objectApiName);
+            Integer tableNumber = 0; 
 
 
             for (Object newElement : bodyContentNew) {
@@ -228,7 +229,9 @@ public with sharing class GoogleDocPreview {
                     Map<String, Object> firstRow = (Map<String, Object>) newTableRows[0];
                     Map<String, Object> secondRow = (Map<String, Object>) newTableRows[1];
                     Map<String, Object> thirdRow = (Map<String, Object>) newTableRows[2];
-                    List<List<String>> tableRecords = getTableRecords(secondRow,thirdRow,recordId,objectApiName);
+                    List<List<String>> tableRecords = allTableRecords[tableNumber];
+                    tableNumber++;
+                    // List<List<String>> tableRecords = getTableRecords(secondRow,thirdRow,recordId,objectApiName);
                     if (tableRecords == null) {
                         System.debug('Null Table records');
                         originalIndex++;
@@ -557,7 +560,7 @@ public with sharing class GoogleDocPreview {
         }
       }
  
-    public static void formatTableRecords(List<Object> bodyContentNew,String recordId,String objectApiName) {
+    public static List<List<List<String>>> formatTableRecords(List<Object> bodyContentNew,String recordId,String objectApiName) {
         try {
             List<Table> tables = new List<Table>();
             List<String> childQueries = new List<String>();
@@ -575,7 +578,6 @@ public with sharing class GoogleDocPreview {
                     }else {
                         tables.add(new Table());
                     }
-                    
                 }
                 
             }
@@ -583,10 +585,12 @@ public with sharing class GoogleDocPreview {
             String queryString = 'SELECT '+String.join(childQueries, ',')+' FROM ' + objectApiName + ' WHERE Id=:recordId';
             SObject mainObject = Database.query(queryString);
 
-            setTableRecordsFromMainRecord(mainObject, tables);
+            List<List<List<String>>> allTableRecords = setTableRecordsFromMainRecord(mainObject, tables);
+            return allTableRecords;
             
         } catch (Exception e) {
             System.debug('Error In formatTableRecords ==> '+e.getMessage());
+            return null;
         }
 
     }
@@ -680,49 +684,56 @@ public with sharing class GoogleDocPreview {
         public List<List<String>> tableRecords;
     }
 
-    public static void setTableRecordsFromMainRecord(SObject mainObject,List<Table> tables) {
-        System.debug('Main Object ==>'+mainObject);
-        System.debug('Tables ==> '+tables);
+    public static List<List<List<String>>> setTableRecordsFromMainRecord(SObject mainObject,List<Table> tables) {
+        
         List<List<List<String>>> allTableRecords = new List<List<List<String>>>();
         for (Table table : tables) {
-            if (table.crn != null) {
-                List<Object> records = (List<Object>) mainObject.getPopulatedFieldsAsMap().get(table.crn);
-                System.debug('Records ===>'+records);
-                List<List<String>> tableRecords = new LiSt<List<String>>();
-                for (Object record : records) {
-                    List<String> row = new List<String>();
-                    for (String column : table.keys) {
-                        row.add(String.valueOf(((Map<String,Object>) JSON.deserializeUntyped(JSON.serialize(record))).get(column)));
+            try {
+                if (table.crn != null) {
+              
+                    List<Object> records = (List<Object>) mainObject.getPopulatedFieldsAsMap().get(table.crn);
+    
+                    List<List<String>> tableRecords = new LiSt<List<String>>();
+                    for (Object record : records) {
+                        List<String> row = new List<String>();
+                        for (String column : table.keys) {
+                            row.add(String.valueOf(((Map<String,Object>) JSON.deserializeUntyped(JSON.serialize(record))).get(column)));
+                        }
+                        tableRecords.add(row);
                     }
-                    tableRecords.add(row);
-                }
-                
-                for (Integer column : table.absolutes.keySet()) {
-                    String absoluteText = table.absolutes.get(column);
-                    
-                    for (List<String> record : tableRecords) {
+                    for (Integer column : table.absolutes.keySet()) {
+                        String absoluteText = table.absolutes.get(column);
                         
-                        if (column < tableRecords.size()) {
-                            record.add(column,absoluteText);
-                        }else {
-                            record.add(absoluteText);
+                        for (List<String> record : tableRecords) {
+                            
+                            if (column < tableRecords.size()) {
+                                record.add(column,absoluteText);
+                            }else {
+                                record.add(absoluteText);
+                            }
                         }
                     }
-                }
-    
-                if (table.isIndexing == true) {
-                    Integer index = 1;
-                    for (List<String> record : tableRecords) {
-                        record[0] = String.valueOf(index);
-                        index++;
+        
+                    if (table.isIndexing == true) {
+                        Integer index = 1;
+                        for (List<String> record : tableRecords) {
+                            record[0] = String.valueOf(index);
+                            index++;
+                        }
                     }
+        
+    
+                    allTableRecords.add(tableRecords);
+                } else {
+                    allTableRecords.add(null);
                 }
-            } else {
+            } catch (Exception e) {
                 allTableRecords.add(null);
             }
+
         } 
 
-        System.debug('All table records ==>'+allTableRecords);
+        return allTableRecords;
     }
 
 }
