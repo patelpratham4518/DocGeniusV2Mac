@@ -15,9 +15,9 @@ public with sharing class GoogleDocPreview {
             try {
                 String sourceDocContent = getDocument(newGoogleDocId);
                 String modiFiedDocContent = sourceDocContent;
-                modiFiedDocContent = KeyMappingController.mappingObjFieldsData(modiFiedDocContent, recordId, objectApiName);
-                modiFiedDocContent = KeyMappingController.mappingGeneralFieldData(modiFiedDocContent);
-                modiFiedDocContent = KeyMappingController.mappingMergeTemplate(modiFiedDocContent);
+                modiFiedDocContent = DataMappingController.mappingObjFieldsData(modiFiedDocContent, recordId, objectApiName);
+                modiFiedDocContent = DataMappingController.mappingGeneralFieldData(modiFiedDocContent);
+                modiFiedDocContent = DataMappingController.mappingMergeTemplate(modiFiedDocContent);
                 List<Object> bodyContentOriginal = (List<Object>) ((Map<String,Object>)JSON.deserializeUntyped(JSON.serialize(((Map<String,Object>) JSON.deserializeUntyped(sourceDocContent)).get('body')))).get('content');
                 List<Object> bodyContentNew = (List<Object>) ((Map<String,Object>)JSON.deserializeUntyped(JSON.serialize(((Map<String,Object>) JSON.deserializeUntyped(modiFiedDocContent)).get('body')))).get('content');
                 List<Object> requests = formatContentForBatchUpdate(bodyContentNew,bodyContentOriginal,recordId,objectApiName);
@@ -471,6 +471,6 @@ public with sharing class GoogleDocPreview {
             System.debug('Error In getTableRecords ==> '+e.getMessage()+e.getStackTraceString());
             return null;
         }
-      }
+    }
 
 }
