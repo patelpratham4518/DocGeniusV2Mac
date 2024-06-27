@@ -23,12 +23,13 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
 
     @track objectLabelAPI = {} 
     @track templateRecord = {}
+    @track tempRecordBackup = {}
 
     @track vfPageSRC = ''
     successCount = 1;
 
-    @track isMappingOpen = false;
-    @track isMappingContainerExpanded = false;
+    @track isMappingOpen = false;                   // #fieldMapping...
+    @track isMappingContainerExpanded = false;      // #fieldMapping...
 
     contentEditor;
     headerEditor;
@@ -72,8 +73,11 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
     @track toggleGenChildTablePopup = false;
     @track childTableQuery;
     @track selectedFieldList;
+    @track showIndex;
+    @track childTableData;
     @track childRelationName;
     @track childObjectLabel;
+    @track childObjAPI;
 
    get setdocGeniusLogoSvg(){
     return docGeniusLogoSvg;
@@ -260,8 +264,10 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                         this.object_Label = result.objectLabelAPI.label;
                         this.templateRecord = result.template;
                         this.templateRecord.createDateOnly = this.templateRecord.CreatedDate.split("T")[0];
+                        this.tempRecordBackup = JSON.parse(JSON.stringify(this.templateRecord));
                         this.templateData = '';
                         this.pageConfigValues = result.pageConfigs;
+                        this.pageConfigValBackup = JSON.parse(JSON.stringify(this.pageConfigValues));
 
                         if(result.template.Template_Data__r){
                             // Collect Value in Single variable...
@@ -348,10 +354,8 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                                 this.isPreview = true;
                             }, 500)
                         }
-                        else if(actionName == 'close'){
-                            this.isSpinner = false;
-                            this.closeEditTemplate();
-                        }
+                        this.tempRecordBackup = JSON.parse(JSON.stringify(this.templateRecord));
+                        this.pageConfigValBackup = JSON.parse(JSON.stringify(this.pageConfigValues));
                     }
                 })
                 .catch(error => {
@@ -364,10 +368,6 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
             this.isSpinner = false;
         }
     }
-
-    handleSaveNClose(){
-        this.saveTemplateValue('close');
-    }
     
     closeEditTemplate(){
         try {
@@ -376,6 +376,16 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
         } catch (error) {
            console.log('error in templateBuilder.closeEditTemplate : ', error.stack)
         }
+    }
+
+    cancelEditTemplate(){
+        this.templateRecord = JSON.parse(JSON.stringify(this.tempRecordBackup));
+        this.pageConfigValues = JSON.parse(JSON.stringify(this.pageConfigValBackup));
+        
+        this.setPageConfigVariable();
+        this.activeTabName = 'contentTab';
+        this.setActiveTab();
+        this.SetCSSbasedOnScreenChangeIn();
     }
 
     handleSaveNPreview(){
@@ -416,7 +426,6 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
 
     setActiveTab(){
         try {
-            console.log('activeTabName : ', this.activeTabName);
             const activeTabBar = this.template.querySelector(`.activeTabBar`);
             const tabS = this.template.querySelectorAll('.tab');
 
@@ -447,6 +456,7 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
     }
     // ==== Toggle Tab Methods - END - ========
 
+    // #fieldMapping...
     showHideMappingContainer(){
         try {
             this.isMappingOpen = !this.isMappingOpen;
@@ -464,6 +474,7 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
         }
     }
 
+    // #fieldMapping...
     toggleMappingContainerHeight(){
         try {
             const fieldMappingContainer = this.template.querySelector('.fieldMappingContainer');
@@ -491,6 +502,7 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
 
     handleEditDetail(event){
         try {
+
             const targetInput = event.currentTarget.dataset.name;
             if(event.target.type != 'CHECKBOX'){
                 this.templateRecord[targetInput] = event.target.value;
@@ -668,21 +680,27 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                 // Here, Windows.innerWidth represent the width of contentEditorFrame/(.note-frame) width;
                 const mapContainerWidth = (window.innerWidth >= 1400 ? (35 * 16) : (30 * 16)) + 32;
                 if(window.innerWidth - this.currentPageWidth < mapContainerWidth){
-                    fieldMappingContainer.classList.add('floatingMapping');
+                    //  If difference Screen width and editor page width is less than key Mapping container width... 
+                    // key Mapping container can not set in that place... So Toggle the container
+                    fieldMappingContainer.classList.add('floatingMapping');                 // #fieldMapping...
                     this.template.querySelector('c-key-mapping-container').toggleMappingContainer(true);
                     editorArea.style = `max-width : calc(100% - 2rem) !important; 
                                         margin-right: 0% !important;
                                         margin-inline: auto !important;`
                 }
                 else{
-                    fieldMappingContainer.classList.remove('floatingMapping');
+                    // Show field Mapping Container
+                    fieldMappingContainer.classList.remove('floatingMapping');               // #fieldMapping...
                     this.template.querySelector('c-key-mapping-container').toggleMappingContainer(false);
                     editorArea.style = '';
                 }
             }
             else{
-                fieldMappingContainer.classList.add('floatingMapping');
+                // Hide field Mapping Container
+                fieldMappingContainer.classList.add('floatingMapping');                      // #fieldMapping...
+                // Show Button ( << Insert Field Button) to Open Field Mapping...
                 this.template.querySelector('c-key-mapping-container').toggleMappingContainer(true);
+                // Set Editor Page CSS....
                 editorArea.style = `max-width : calc(100% - 2rem) !important; 
                                     margin-right: 0% !important;
                                     margin-inline: auto !important;`;
@@ -710,52 +728,85 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                             aspect-ratio : ${aspectRatio}`;
     }
 
+    // #Child Object Table Method....
     openGenChildTablePopup(event){
         this.childRelationName = event.detail?.relationshipName;
+        this.childObjAPI = event.detail?.childObjAPI;
         this.childObjectLabel = event.detail?.label;
         this.toggleGenChildTablePopup = true;
     }
 
+    // #Child Object Table Method....
     closeGenChildTable(){
         this.childTableQuery =  null;
         this.selectedFieldList = null;
+        this.childTableData = null;
+        this.showIndex = null;
         this.toggleGenChildTablePopup = false;
     }
 
+    // #Child Object Table Method....
     handleChildTableInsert(event){
         this.childTableQuery =  event.detail?.query;
         this.selectedFieldList = event.detail?.selectedFields;
-        this.generateChildTable(false);
+        this.childTableData = event.target?.generatedData;
+        this.generateChildTable();
     }
 
+    // #Child Object Table Method....
     regenerateChildTable(event){
-        this.generateChildTable(event.target.checked);
+        this.showIndex = event.target.checked
+        this.generateChildTable();
     }
     
-    generateChildTable(showIndex){
+    // #Child Object Table Method....
+    generateChildTable(){
         try {
             var filters;
-            var orderBy;
+            var limit;
             if(this.childTableQuery.includes('WHERE')){
-                if(this.childTableQuery.includes('ORDER')){
+                if(this.childTableQuery.includes('LIMIT')){
+                    const whereIndex  = this.childTableQuery.indexOf('WHERE') + 5;
+                    const limitIndex  = this.childTableQuery.indexOf('LIMIT') + 5;
+                    limit = this.childTableQuery.substring(limitIndex, this.childTableQuery.length).trim();
+                    filters = this.childTableQuery.substring(whereIndex, limitIndex - 5);
+                }
+                else {
+                    filters = this.childTableQuery.substring(whereIndex, this.childTableQuery.length);
                 }
             }
+            else if(this.childTableQuery.includes('LIMIT')){
+                const limitIndex  = this.childTableQuery.indexOf('LIMIT') + 5;
+                limit = this.childTableQuery.substring(limitIndex, this.childTableQuery.length).trim();
+            }
+
+            console.log('filters : ', filters);
+            console.log('limit : ', limit);
             
             if(this.selectedFieldList && this.selectedFieldList.length){
                 const childTBody = this.template.querySelector('[data-name="childTBody"]');
                 childTBody.innerHTML = '';
 
+                const tdCSS = `   border: 1px solid #808080;
+                                    padding: 5px 3px;
+                                    overflow: hidden;
+                                    text-align : center;
+                `
+
                 const labelRow = document.createElement('tr');
                 const keyRow = document.createElement('tr');
+                keyRow.setAttribute('data-name', "keyRow");
                 const infoRow = document.createElement('tr');
+                infoRow.setAttribute('data-name', "infoRow");
 
-                if(showIndex){
+
+                if(this.showIndex){
                     const labelTd = document.createElement('td');
-                    labelTd.style = `border: 1px solid #808080; padding: 5px 3px;`;
+                    labelTd.style = tdCSS;
                     labelTd.textContent = 'No.';
                     const keyTd = document.createElement('td');
-                    keyTd.style = `border: 1px solid #808080; padding: 5px 3px;`;
-                    keyTd.textContent = '{{!Index.No}}';
+                    keyTd.style = tdCSS;
+                    keyTd.textContent = '{{No.Index}}';
                     labelRow.appendChild(labelTd);
                     keyRow.appendChild(keyTd);
                 }
@@ -764,9 +815,9 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                 for(var i = 0; i < selectedFieldList.length; i++){
                     let fieldInfo = selectedFieldList[i];
                     const labelTd = document.createElement('td');
-                    labelTd.style = ` border: 1px solid #808080; padding: 5px 3px; `;
+                    labelTd.style = tdCSS;
                     const keyTd = document.createElement('td');
-                    keyTd.style = ` border: 1px solid #808080; padding: 5px 3px; `;
+                    keyTd.style = tdCSS;
                     labelTd.textContent = fieldInfo.fieldName;
                     keyTd.textContent = `{{!${fieldInfo.apiName}}}`;
                     labelRow.appendChild(labelTd);
@@ -774,10 +825,17 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                 }
 
                 const infoTd = document.createElement('td');
-                infoTd.setAttribute('colspan', showIndex ? (selectedFieldList.length + 1) : selectedFieldList.length);
-                infoTd.style = `padding: 5px 3px; border: 1px solid rgb(203, 203, 203) !important; color: rgb(76, 76, 76) !important; text-align: center;`;
-                infoTd.innerText = `object: ${this.childObjectLabel}, $childRelation: ${this.childRelationName}$, $limit: 10${filters ? `, $filter : ${filters}$` : ``} ${orderBy ? `,$orderBy: ${orderBy}` : ``}`;
-                infoRow.appendChild(infoTd);
+                infoTd.setAttribute('colspan', this.showIndex ? (selectedFieldList.length + 1) : selectedFieldList.length);
+                infoTd.style = `position : relative; padding: 5px 3px; border: 1px solid rgb(203, 203, 203) !important; color: rgb(76, 76, 76) !important; text-align: center; overflow : hidden;`;
+                infoTd.innerText = `Object: ${this.childObjectLabel},
+                                    $objApi:${this.childObjAPI}$, $childRelation:${this.childRelationName}$, $limit:${limit ? limit : '20'}$, ${filters ? `, $filter:${filters}$` : ``}
+                                    `;
+
+                // const overlay = document.createElement('div');
+                // overlay.setAttribute('data-name', "overlay");
+                // overlay.style = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0); z-index: 9;`;
+                // infoTd.appendChild(overlay);
+                // infoRow.appendChild(infoTd);
 
                 childTBody.appendChild(labelRow);
                 childTBody.appendChild(keyRow);
@@ -788,11 +846,11 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
         }
     }
 
-    copyChildTable(){
+    // #Child Object Table Method....
+    copyChildTable(event){
         try {
             const table = document.createElement('table');
-            table.classList.add('table');
-            table.classList.add('table-bordered');
+            table.setAttribute('data-name', "childRecords");            
 
             const childTBody = this.template.querySelector('[data-name="childTBody"]');
 
@@ -800,8 +858,6 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
             childTBody && (tableBody = childTBody.cloneNode(true));
             tableBody && tableBody.removeAttribute('data-name');
             tableBody && tableBody.classList.remove('childTBody');
-
-            console.log('copy Table : '  , tableBody);
 
             table.appendChild(tableBody);
             document.body.appendChild(table);
@@ -812,6 +868,13 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                     // 'text/plain': new Blob([textarea.value], { type: 'text/plain' })
                 })
             ]);
+
+            // Show animation on copy...
+            const copyBtn = event.currentTarget;
+            copyBtn.classList.add('copied');
+            setTimeout(() => {
+                copyBtn.classList.remove('copied');
+            }, 1001);
 
             document.body.removeChild(table); 
 

@@ -23,7 +23,7 @@
               </svg>
               <div>Template Content</div>
             </div>
-            <!-- <div class="tab" data-name="headerFooterTab" onclick={activeTab}>
+            <div class="tab" data-name="headerFooterTab" onclick={activeTab}>
               <svg viewBox="0 0 24 24">
                 <path
                   d="M17 21V17H7V21H5V16C5 15.4477 5.44772 15 6 15H18C18.5523 15 19 15.4477 19 16V21H17ZM7 3V7H17V3H19V8C19 8.55228 18.5523 9 18 9H6C5.44772 9 5 8.55228 5 8V3H7ZM2 9L6 12L2 15V9ZM22 9V15L18 12L22 9Z">
@@ -31,7 +31,7 @@
               </svg>
               <div>Header / Footer</div>
             </div>
-            <div class="tab" data-name="waterMarkTab" onclick={activeTab}>
+            <!-- <div class="tab" data-name="waterMarkTab" onclick={activeTab}>
               <svg viewBox="0 0 24 24">
                 <path
                   d="M15 8V4H5V20H19V8H15ZM3 2.9918C3 2.44405 3.44749 2 3.9985 2H16L20.9997 7L21 20.9925C21 21.5489 20.5551 22 20.0066 22H3.9934C3.44476 22 3 21.5447 3 21.0082V2.9918ZM11 9.5C11 10.3284 10.3284 11 9.5 11C8.67157 11 8 10.3284 8 9.5C8 8.67157 8.67157 8 9.5 8C10.3284 8 11 8.67157 11 9.5ZM17.5 17L13.5 10L8 17H17.5Z">
@@ -78,9 +78,10 @@
             <div data-name="templateContent"></div>
           </div>
           <div class="headerFooterSection tabArea deactiveTabs" data-section="headerFooterTab">
-            <div data-name="headerEditor"></div>
-            <div data-name="footerEditor"></div>
+            <!-- <div data-name="headerEditor"></div>
+            <div data-name="footerEditor"></div> -->
           </div>
+          <!-- #fieldMapping... -->
           <c-key-mapping-container 
               class="fieldMappingContainer desicionContainer" 
               object-name={objectName}
@@ -121,7 +122,7 @@
                 </div>
                 <div class="WatermarkOptions"></div>
                 <div class="buttonSection">
-                  <lightning-button variant="destructive" label="Cancel" title="Cancel" onclick={handleSaveNClose}
+                  <lightning-button variant="destructive" label="Cancel" title="Cancel" onclick={closeEditTemplate}
                     icon-name="utility:close" icon-position="left"></lightning-button>
                   <lightning-button label="Preview" title="Preview" onclick={handleSaveNPreview}
                     icon-name="utility:preview" icon-position="left"></lightning-button>
@@ -134,6 +135,9 @@
           <div class="basicDetailSetion tabArea deactiveTabs" data-section="basicTab">
             <div class="nonEditor_toobar_outer">
               <div class="nonEditor_toobar">
+                <div class="toolBarHeaderText">
+                  Edit Template Detail &#38; Manage Page Configurations
+                </div>
                 <div class="logoSection">
                   <div class="docGeniusLogo"><img src={setdocGeniusLogoSvg}></img></div>
                 </div>
@@ -157,18 +161,13 @@
                         <div class="editStatus">
                           <span class="statusLabel">Status: </span>
                           <div class="tempToggle">
-                            <template lwc:if={templateRecord.Template_Status__c}>
-                              <input class="checkBox checked" type="checkbox" id={templateRecord.Id} data-name="Template_Status__c" onchange={handleEditDetail} style="display: none;" checked/>
-                            </template>
-                            <template lwc:else>
-                              <input class="checkBox" type="checkbox" id={templateRecord.Id} data-name="Template_Status__c" onchange={handleEditDetail} style="display: none;"/>
-                            </template>
+                            <input class="checkBox" type="checkbox" id={templateRecord.Id} data-name="Template_Status__c" onchange={handleEditDetail} style="display: none;" checked={templateRecord.Template_Status__c}/>
                             <label for={templateRecord.Id}> 
                               <div class="toggleDiv">
                                 <div class="toggleBtnBg">
                                   <div class="StatusText">
-                                    <span>Active</span>
                                     <span>Inactive</span>
+                                    <span>Active</span>
                                   </div>
                                 </div>
                               </div>
@@ -286,7 +285,7 @@
                   <svg viewBox="0 0 520 520" ><g><path d="M310 254l130-131c6-6 6-15 0-21l-20-21c-6-6-15-6-21 0L268 212a10 10 0 01-14 0L123 80c-6-6-15-6-21 0l-21 21c-6 6-6 15 0 21l131 131c4 4 4 10 0 14L80 399c-6 6-6 15 0 21l21 21c6 6 15 6 21 0l131-131a10 10 0 0114 0l131 131c6 6 15 6 21 0l21-21c6-6 6-15 0-21L310 268a10 10 0 010-14z"></path></g></svg>
                   Close
                 </button>
-                <button class="footerBtn" title="Cancel" >
+                <button class="footerBtn" title="Cancel" onclick={cancelEditTemplate} >
                   <svg viewBox="0 0 24 24" ><path d="M5.82843 6.99955L8.36396 9.53509L6.94975 10.9493L2 5.99955L6.94975 1.0498L8.36396 2.46402L5.82843 4.99955H13C17.4183 4.99955 21 8.58127 21 12.9996C21 17.4178 17.4183 20.9996 13 20.9996H4V18.9996H13C16.3137 18.9996 19 16.3133 19 12.9996C19 9.68584 16.3137 6.99955 13 6.99955H5.82843Z"></path></svg>
                   Cancel
                 </button>
@@ -302,6 +301,7 @@
     </div>
   </div>
 
+  <!-- #Child Object Table.... -->
   <div lwc:if={toggleGenChildTablePopup} class="genChildTablePopup">
     <div class="genChildTablePopup_sub">
       <div class="genChildHader">
@@ -311,21 +311,31 @@
         </div>
       </div>
       <div class="childEditCsvComp genChildBody">
-        <c-edit-c-s-v-template object-name={objectName} is-child="true" onsave={handleChildTableInsert} onclose={closeGenChildTable}>
+        <c-edit-c-s-v-template 
+              object-name={childObjAPI} 
+              is-child="true" 
+              onsave={handleChildTableInsert} 
+              onclose={closeGenChildTable}>
         </c-edit-c-s-v-template>
       </div>
       <div class="genChildFooter">
-        <div class="generatedTable note-editor note-editing-area note-editable">
-          <table>
-            <tbody class="childTBody" data-name="childTBody">
-
-            </tbody>
-          </table>
-          <div lwc:if={noChildTable} class="ChildTablePlaceholder">Generate Table will display here...</div>
+        <div class="generatedTable">
+          <div class="childTableFrame note-editor note-frame">
+            <div class="childTableArea note-editing-area">
+              <div class="childTableEditable note-editable">
+                <table>
+                  <tbody class="childTBody" data-name="childTBody">
+                    
+                  </tbody>
+                </table>
+                <div lwc:if={noChildTable} class="ChildTablePlaceholder">Generated Table will display here...</div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="ChildTableOptions">
           <div lwc:if={childTableQuery}  class="srNoOption">
-            <div class="srNoOption_label">Show Index</div>
+            <div class="srNoOption_label">Show Index Column:</div>
             <lightning-input
             class="srNoOption_toggel"
             type="toggle"
@@ -349,7 +359,7 @@
 
   <template lwc:if={isPreview}>
     <c-template-preview-modal templateid={templateRecord.Id} objectname={templateRecord.Object_API_Name__c}
-      objectlabel={object_Label} onclosepreview={closeTemplatePreview}></c-template-preview-modal>
+      objectlabel={object_Label} onclosepreview={closeTemplatePreview} used-from="Simple Template"></c-template-preview-modal>
   </template>
 
   <c-message-popup onconfirmation={handleConfimation}></c-message-popup>

@@ -7,6 +7,7 @@ export default class TemplatePreviewModal extends LightningElement {
     @api objectname;
     @api objectlabel;
     @api recordId;
+    @api usedFrom;
 
     @track previewModal_img = previewModal_img;
     @track spinnerLabel = null;
@@ -18,7 +19,17 @@ export default class TemplatePreviewModal extends LightningElement {
     @track vfPageSRC; 
     @track vfGeneratePageSRC;
     @track errorDetail = {};
-    
+
+
+    // @track filters = [
+    //     {
+    //         or : [
+    //             {field : 'Name', operator : 'eq', value : 'test now'}
+    //         ]
+    //     }  
+    // ]
+
+    @track filters = [{field : 'Name', operator : 'eq', value : 'test now'}];
     
     get label(){
         return `Select ${this.objectlabel} record`;
@@ -86,6 +97,7 @@ export default class TemplatePreviewModal extends LightningElement {
                 'templateId' : this.templateid,
                 'Object_API_Name__c' : this.objectname,
                 'recordId' : this.selectedRecordId,
+                'usedFrom' : this.usedFrom ? this.usedFrom : ''
             }
             var paraDataStringify = JSON.stringify(paraData);
             console.log('vfPageSRC before : ', this.vfPageSRC);
@@ -96,10 +108,13 @@ export default class TemplatePreviewModal extends LightningElement {
                 'templateId' : this.templateid,
                 'Object_API_Name__c' : this.objectname,
                 'recordId' : this.selectedRecordId,
-                'docType' : 'DOC'
+                'docType' : 'DOC',
+                'useMode' : 'return',
+                // 'useMode' : 'download',
             }
             var paraDataStringify2 = JSON.stringify(paraData2);
-            this.vfGeneratePageSRC = '/apex/DocGeneratePage?paraData=' + paraDataStringify2;
+            // this.vfGeneratePageSRC = '/apex/DocGeneratePage?paraData=' + paraDataStringify2;
+            this.vfGeneratePageSRC = '/apex/GenerateDOCX?paraData=' + paraDataStringify2;
 
             if(newSRC != previousSRC){
                 this.vfPageSRC = newSRC;

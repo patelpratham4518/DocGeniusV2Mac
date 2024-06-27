@@ -1,6 +1,5 @@
 <apex:page controller="DocPreviewController"  
-		   applyHtmlTag="false" showHeader="false" cache="false" >
-           
+		   applyHtmlTag="false" showHeader="false" cache="false"  action="{!constructor}">
     <html>
         <head>
             <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
@@ -19,14 +18,14 @@
                     padding-top: 0px !important;
                     border: none !important;
                     width: 100% !important;
-                    height: 100% !important;
+                    height: max-content !important;
                     overflow: hidden !important;
                     display: block !important;
                 }
                 .note-editor.note-frame .note-editing-area, .note-editor.note-airframe .note-editing-area{
                     max-width: 100% !important;
                     /* margin-right: calc(30% + 1.5rem); */
-                    height: 100% !important;
+                    height: max-content !important;
                     flex-grow: 1 !important;
                     max-height: max-content !important;
                     min-height: auto !important;
@@ -37,14 +36,14 @@
                 }
                 .note-editor.note-frame .note-editing-area .note-editable, .note-editor.note-airframe .note-editing-area .note-editable{
                     height: 100% !important;
-                    min-height: auto !important;
+                    min-height: max-content !important;
                     background-color: white;
                     padding: 0px !important;
                     width: 100% !important;
                     box-shadow: none !important;
                     border: none !important;
                     border-radius: none !important;
-                    margin-bottom: 0px !important;
+                    margin-bottom: 136px !important;
                 }
                 /* **** ***** ****** Editor CSS -- END **** ***** ****** */
 
@@ -287,145 +286,157 @@
 
         <script type="text/javascript">
                 try {
-                    const promises = [];
-                    const dummyImgSrc = 'data:image/png;base64,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'
 
+                    var usedFrom = '{!usedFrom}';
+                    if(usedFrom == 'Simple Template'){
 
-                    // Create Dynamic Node for Content....
-                    var node = document.createElement('div');
-                    node.innerHTML =`<div class="note-editor note-frame" data-zone="templateContent">
-                                            <div class="note-editing-area">
-                                                <div aria-multiline="true" role="textbox" class="note-editable">
-                                                    {!displayText}
+                        const promises = [];
+                        const dummyImgSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARAAAAB/CAIAAACovQp5AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAABEKADAAQAAAABAAAAfwAAAADAZSePAAANGUlEQVR4Ae2dO4gUSxSGr5drauIqYmjgBoKbi+CCGCisKIiRgusjMTIQH2io+MDAyMQHgkaLoLCggSysIAZmCgYaGIr4QDA1uZ/3XA7l9kxPVU9NT/XuP8FQU33q1Om/zt+nnj2rPn/+/Jc+QkAIxCHwd5yYpISAEPiNgAgjPxACCQiIMAlgSVQIiDDyASGQgIAIkwCWRIWACCMfEAIJCIgwCWBJVAiIMPIBIZCAgAiTAJZEhYAIIx8QAgkIiDAJYElUCIgw8gEhkICACJMAlkSFgAgjHxACCQiIMAlgSVQIiDDyASGQgIAIkwCWRIWACCMfEAIJCIgwCWBJVAiIMPIBIZCAgAiTAJZEhYAIIx8QAgkIiDAJYElUCIgw8gEhkICACJMAlkSFgAizzH3g169f4R0u+RleUjoGAREmBqUOy6xevTq0fsnP8JLSMQj8EyMkmX4IdOKBbSTBVLGlXzvG54sw8Vj9L2kkefXq1cuXLz98+JBcvvUC69atm5ycnJmZ2bBhQ+uVL7cKV+nt/alNCmGOHz8OW1ILjld+06ZNN2/e3LJly3jN6HrtIkxaC8KW+/fvX716dc2aNVu3bt28eXNa+XFI//jxY2Fh4efPn3DmwYMHijPDNIK6ZGnoff/+fW5ujjIHDhw4c+ZMV0YFL168OHr06MePH9+/fy/CpDX5n9KaJfsTj0G/IAxuh9S+ffsGyRZ0fdu2bYQXDOrEoKsg4CqmiDAVSKIzOhFebIoi+p4kOAABEWYAQMNcLsFZO8HqYUBuuawIM0LA5awjBHdMqjXoHwnwTNYzvDbVjB+MOQQcUWgkcLeoVITJDDZUuXHjxps3b2xuAO2Mtqenp48dO2bTU6JNZsTbVSfC5MT73bt3p06dMqqwUDMxMfHt2zd+8llcXLQ1EAWZnIi3rktjmDyQ2/j++vXrcAON586de/369fPnz/kmTQ75Z8+eLWEaIM8Nr1QtIky2lmdxkP0yBJZ79+6dOHECvUaPI0eOkMNPrrIDLVt9UjQOBESYbKgbK9gvs2PHDpTS9fKPrxvOz89nq0+KxoGACJMN9U+fPqGr5+4ymMO4n6tfv37NVp8UjQMBEWZUqIfDlTA9qvqktxUERJhsME9NTaGL2bAqPdiBRj5Xe8afbBZI0egREGHyYEyna3Z2lhE/s2Hs/4cz5Bhz+GboYrNn27dvz1OftIwJAREmD/CwgrNZO3fuRN2tW7c4YcaaDIGFb9KcnyGfDfY2H5CnSmkZBwJauMyDOvEERadPn+b78ePHzCDzIeBwbMsq2L9/P4v9eSqTlvEhIMLkxJ7NL1euXOEAPWx5+/YtquEME830xFiNMVLlrE+6WkdAhMkJuQ1aWLXk4y9L0AnHnBCPW5cIk7MFwhginuREthhdGvSPqiks2oxKu/SOCQFFmFEBH0abLHXAQKbdOGbDuXz22rCkk72KLHYubyUiTGfaF54cOnQonHZjgkGcabn91CVrGfCG1dlJG9jCtJu9/4XJa04TNFSnYk0REGGaItdiOSbc7KQNbHn48CEH0VgDpf5Hjx5xpoCExkuttYYI0xrUDSuCLZw8s2VQ3vXK0IX5N9ZAWdsh4HDAk+BDx0ycaYhvYjERJhGwdsWhAW8IgC1Ue/LkSXbW2KAFzly7do2+mXEGUmkw007LiDDt4Jxci0UMemKMVSjMOWf2CoRhBM5cvHiRThrbOiEVl8KryfWpQBwCIkwcTulSw7vv7du3OcUJJdiHZjtrLIy4ZgIOYQfTIBVbpBVk0lspuYQIkwxZTAH3aYTDdHxZTv/bHme2ohFAwoJODDRDJOjEVbZI2wRAKKl0dgREmMyQ4sQ4Llv69+zZw+blBqML+IAGRvNYxsiesQoJJ4mbS0WWyWqMTwBQnQssSWzcuBFqseK5JF8/kxDQwmUSXL2F3Xe5TGTA1215kZeScYgfj0/aV8as16VLl9DAmL6mrLHFvvnjDd4owGDm8OHD/f4BBlVr1641+dDg3rek3D4IKML0ASYl27yQEqGvs1SC0zPBdffuXRzU9Hmip3quEiLsVYAMXfq5frUsZ9fqJwCwELaYhYQvttjUW1KtQjmGgAiTzRNwQV9eZMGEp769wo+BOyNyqwbHrfFU/JgQQaCwBcqkuDRwAgDldBT37t0Lk3fv3q1dAs0aXoRphtvSUtDg/Pnz4fIiEozIGV2QYERO8LEyHo5CFRQntjC4N7bE/xklBfmYquoEgF8i4es5sJHQxy4BZuFCG5SOQUCEiUFpsAwxhLldfJG/8rPlRSMGI4dwebFGEQ5tSy62QFkjGV6iFquITBJMM/gEgO0AMGEzjzRB79mzZyYT0jjUqXQNAiJMDTiDL9kjnFGBTQHzEgx6Yv5cx4PpVhEuIBKhw96t7FddOzm+QEl/iUDhl1ITVIcBFkO800XsghuogicoR+bOnTtOY7OnalVq1StEXoQZtqFtoI8WXNBeguGPfPNCdn/BGQTosOHES66Sz+PfXjPLtC/u7gLNLGMCwKqzDZrYAFHpg8Eiwp0rZ5IA/dCY2kl4frNKV04pEWbYtvZJLdyUh3foeZ5m9cPc1/cXu48SnfzxD9+8yDBmUR0MtCUX+OBb0WyizKrmqlY8G4AswjQA7f8iPLwZ6NcM0y3CwAE+hA4bOcAcmwDgKglbtKlfcmlgoo2j0G9shBt0xjDDVFE1afhpHTPYRQ6fBhWttCIiTPMW5+FdP0x3B7U6bAKANCRhXME8r52gxGvjl1wGmovfW70k6AFaZ8xjF/US00wJ8dA6Zt5XFGcGwivCDISot8CTJ0/ChzdC9d6GE7uD2gQASy54M2yxvpxVU6+ktyl/5jpbvDMW6mc8Q4jjkhXyjhl9RcLREob/qVi/fiMgwjT0A7oxuDu9LH94x3gbPSUmdhl/81C3vhzPeIbpzpMYJTEW8wIA57MNZsJSX758sZ9U5x0zi3uhmNJVBESYKiaxOT7wcHePKck7/lhpoSxk47wxFKJUFp6YGXzz8aFR+KIM8qsWhnGPXTxVAeWECIgwIRoJaaIEwQFvo0yqu8OZp0+fshhCbLEqe7pygjX/iZoZfNPjInyRh4WhbWE6VE4Iqk7ihQJKOwIijEORlkhaj6+qxndD9w3TVeGkHJ+nhgPVzlhPVdTOSwIIenQy2Sidhb09K1oGmSJMw0aM9MWG2psWw9dtcIX3wwGYEOn9hErmBgibhCbmyiNLNTWzw+VEmA43XtX0cANoaneR/iEb4dDJXLn+7bmKreWIMP2Q6V4+nbGFhQXsxu995i0pVtjbm9BAx4wVm+5BMHqLRZjRY9xKDfi3ndNk8g2/p04bFyWNjghKtneTjhm7p5PI1spdjr8SEWb8bTCkBebWzAjbzBhjfeuMVdXGEICtov4mGjpmFIkpVa1rueaIMMuhZemMsVTPnbAqOuRsBBGJXWeEKbSxmMP+naQYtRzQrL0HEaYWni5cxKf9pRnhDsuq7e7669evr171HMT8UI06Zg6LJUSYJYB07Cf9JXyazhgzwswLOyV63gbCMIEoNDMz01PAM5kz8I6Zbzzzqys5IcJ0u/UZZviOad830O+WoBMy7DPoN8gJC3rHjD1pmjFzZEQYh6J7CZsZw26GHPh3/Q3Y2P3y5cu7du3yHf71RTiPQOBi+d8OV9cLr5CrIkxaQ3NoER+iDC/pSys5Aun5+XnrjNHRqu+MUTkCcGZxcZEiFDT+1BiFPDdrHTP+Qp3tzzXCK+eS3nyZ0NY4GT40MTHBQ5cdKJOTk37oN0FLDlHzfjt7zJs3bJkyhjMHDx6k1Ozs7EBhzESG/tvc3Bwc4/zPwC5fjjsrXccqdU9Tm4j+jO3tJdRAHkJNy9/T09MXLlyAvby+GVeGunZGIPVGIuU5MMMwic1p7LCOoVmk2o6KKcIkNxwLHUw0MRQmzvChfMvfEMaM9m6hnnrJrdi0gAiThhzPdeuoMDNr/wCeVj6HNIvxpsY6h4Q7G1bl0N1Dhz0OpqamelxbeVnqkiW3uXGGb0q230Xx2qmad73aCwST7yGxAITkfZkxk9GJirsnLsJ0r82MM2Y3nTECHWkbR43iZtDM3IbYYtiKMKPwsWWoM2TpMry96FvSOkw0VCtbsP3OZ5l4izBltousKhQBEabQhpFZZSIgwpTZLrKqUAREmEIbRmaViYAIU2a7yKpCERBhCm0YmVUmAiJMme0iqwpFQIQptGFkVpkIiDBltousKhQBEabQhpFZZSIgwpTZLrKqUAREmEIbRmaViYAIU2a7yKpCERBhCm0YmVUmAiJMme0iqwpFQIQptGFkVpkIiDBltousKhQBEabQhpFZZSIgwpTZLrKqUAREmEIbRmaViYAIU2a7yKpCERBhCm0YmVUmAiJMme0iqwpFQIQptGFkVpkIiDBltousKhQBEabQhpFZZSIgwpTZLrKqUAREmEIbRmaViYAIU2a7yKpCERBhCm0YmVUmAv8CUo0RSophqL8AAAAASUVORK5CYII='
+    
+                        // Create Dynamic Node for Content....
+                        var node = document.createElement('div');
+                        node.innerHTML =`<div class="note-editor note-frame" data-zone="templateContent">
+                                                <div class="note-editing-area">
+                                                    <div aria-multiline="true" role="textbox" class="note-editable">
+                                                        {!displayText}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        `;
-                    
-                    //  ==== Convert URL src into base64 =======
-                    const images = node.querySelectorAll('img');
-                    images.forEach(ele => {
-                        if(ele.src.startsWith('http')){
-                            // promises.push(convertImgToBase64(ele.src).then(base64Img => {
-                            //     ele.src = base64Img;
-                            // }));
-                            ele.src = dummyImgSrc;
+                                            `;
+                        
+                        //  ==== Convert URL src into base64 =======
+                        const images = node.querySelectorAll('img');
+                        images.forEach(ele => {
+                            if(ele.src.startsWith('http')){
+                                // promises.push(convertImgToBase64(ele.src).then(base64Img => {
+                                //     ele.src = base64Img;
+                                // }));
+                                ele.src = dummyImgSrc;
+                            }
+                        });
+    
+                        // ==== ===  Function to convet URL src to base64 src using canvas APIs ==== =====
+                        function convertImgToBase64(url) {
+                            return new Promise((resolve, reject) => {
+                                let img = new Image();
+                                img.crossOrigin = 'Anonymous';
+                                img.src = url;
+                                img.onload = function() {
+                                    let canvas = document.createElement('canvas');
+                                    canvas.width = img.width;
+                                    canvas.height = img.height;
+                                    let ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0);
+                                    let dataURL = canvas.toDataURL('image/png');
+                                    resolve(dataURL);
+                                };
+                                img.onerror = function() {
+                                    // replace CORS Block Images with dummy IMAGE...
+                                    resolve('data:image/png;base64,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');
+                                };
+                            })
                         }
-                    });
-
-                    // ==== ===  Function to convet URL src to base64 src using canvas APIs ==== =====
-                    function convertImgToBase64(url) {
-                        return new Promise((resolve, reject) => {
-                            let img = new Image();
-                            img.crossOrigin = 'Anonymous';
-                            img.src = url;
-                            img.onload = function() {
-                                let canvas = document.createElement('canvas');
-                                canvas.width = img.width;
-                                canvas.height = img.height;
-                                let ctx = canvas.getContext('2d');
-                                ctx.drawImage(img, 0, 0);
-                                let dataURL = canvas.toDataURL('image/png');
-                                resolve(dataURL);
-                            };
-                            img.onerror = function() {
-                                // replace CORS Block Images with dummy IMAGE...
-                                resolve('data:image/png;base64,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');
-                            };
+    
+                        const content = document.querySelector('.content');
+                        const content_sub = document.querySelector('.content_sub');
+                        const pdf_content = document.getElementById('pdf_content');
+    
+                        const pageToSet = document.querySelector('[data-name="pageToSet"]');
+                        const pagePlus = document.querySelector('[data-name="pagePlus"]');
+                        const pageMinus = document.querySelector('[data-name="pageMinus"]');
+    
+                        var pdfPages = 1;
+                        var currentPage = 1;              
+                        
+                        const pageMargins = '{!pageMargins}';
+                        const mArray = pageMargins.split(';');
+    
+                        // === Once all URL image src convet to base64 src ===  exectute further process....
+                        Promise.all(promises).then(() => {
+                            // All images have been converted to base64
+                            generatePreview();
                         })
+    
+                        function generatePreview(){
+                            var opt = {
+                                margin: [parseInt(mArray[0]), parseInt(mArray[2]), parseInt(mArray[1]), parseInt(mArray[3])],
+                                // margin : [top, left, bottom, right]
+                                filename: 'docGenius-test.pdf',
+                                image: { type: 'jpeg', quality: 1 },
+                                html2canvas: { scale: 3 , useCORS: true , letterRendering: true},
+                                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+                                jsPDF: { unit: '{!pageConfigUnit}', format: '{!pageSize}', orientation: '{!pageOrientation}' }
+                            };
+        
+                            var doc = html2pdf().set(opt).from(node);
+                            doc.outputPdf().then(function (pdfBlob){
+                                displayPDF(pdfBlob);
+                            })
+                            // .save();
+                        }
+                    }
+                    else if(usedFrom == 'Google Doc Template'){
+                        var pdfBlob = atob('{!docPDFBase64}');
+                        displayPDF(pdfBlob);
                     }
 
-                    const content = document.querySelector('.content');
-                    const content_sub = document.querySelector('.content_sub');
-                    const pdf_content = document.getElementById('pdf_content');
+                    function displayPDF(pdfBlob){
+                        var loadingTask = pdfjsDistBuildPdf.getDocument({ data: pdfBlob });
+                        loadingTask.promise.then(function (pdf) {
+                            const totalPagesInput = document.querySelector('[data-name="totalPages"]');
+                            if(totalPagesInput){
+                                totalPagesInput.value = pdf.pdfInfo.numPages;
+                            }
+                            const pageToSetInut = document.querySelector('[data-name="pageToSet"]');
+                            if(pageToSetInut){
+                                pageToSetInut.value = currentPage;
+                            }
 
-                    const pageToSet = document.querySelector('[data-name="pageToSet"]');
-                    const pagePlus = document.querySelector('[data-name="pagePlus"]');
-                    const pageMinus = document.querySelector('[data-name="pageMinus"]');
-
-                    var pdfPages = 1;
-                    var currentPage = 1;              
-                    
-                    const pageMargins = '{!pageMargins}';
-                    const mArray = pageMargins.split(';');
-
-                    // === Once all URL image src convet to base64 src ===  exectute further process....
-                    Promise.all(promises).then(() => {
-                        // All images have been converted to base64
-                        generatePreview();
-                    })
-
-                    function generatePreview(){
-                        var opt = {
-                            margin: [parseInt(mArray[0]), parseInt(mArray[2]), parseInt(mArray[1]), parseInt(mArray[3])],
-                            // margin : [top, left, bottom, right]
-                            filename: 'docGenius-test.pdf',
-                            image: { type: 'jpeg', quality: 1 },
-                            html2canvas: { scale: 3 , useCORS: true , letterRendering: true},
-                            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-                            jsPDF: { unit: '{!pageConfigUnit}', format: '{!pageSize}', orientation: '{!pageOrientation}' }
-                        };
-    
-                        var doc = html2pdf().set(opt).from(node);
-                        doc.outputPdf().then(function (pdfBlob){
-                            var loadingTask = pdfjsDistBuildPdf.getDocument({ data: pdfBlob });
-                            loadingTask.promise.then(function (pdf) {
-                                const totalPagesInput = document.querySelector('[data-name="totalPages"]');
-                                if(totalPagesInput){
-                                    totalPagesInput.value = pdf.pdfInfo.numPages;
-                                }
-                                const pageToSetInut = document.querySelector('[data-name="pageToSet"]');
-                                if(pageToSetInut){
-                                    pageToSetInut.value = currentPage;
-                                }
-    
-                                pdfPages = pdf.pdfInfo.numPages;
-                                
-                                for(var i = 1; i <= pdf.pdfInfo.numPages; i++ ){
-                                    let pageNum = i;
-                                    pdf.getPage(i).then(function(page) {
-                                        
-                                        // PDFViewerApplicationOptions.set('printResolution', 300);
-                                        var scale = 1.5;
-                                        // Support HiDPI-screens.
-                                        var outputScale = window.devicePixelRatio || 1.1;
-                                        var outputScale = outputScale != 1 ? outputScale : 1.1;
-            
-                                        var viewport = page.getViewport(scale);
-            
-                                        var canvas = document.createElement('canvas');
-                                        pdf_content.appendChild(canvas);
-                                        var context = canvas.getContext('2d');
+                            pdfPages = pdf.pdfInfo.numPages;
+                            
+                            for(var i = 1; i <= pdf.pdfInfo.numPages; i++ ){
+                                let pageNum = i;
+                                pdf.getPage(i).then(function(page) {
+                                    
+                                    // PDFViewerApplicationOptions.set('printResolution', 300);
+                                    var scale = 1.5;
+                                    // Support HiDPI-screens.
+                                    var outputScale = window.devicePixelRatio || 1.1;
+                                    var outputScale = outputScale != 1 ? outputScale : 1.1;
         
-                                        var Print_unit = 4.19;
-            
-                                        canvas.width = Math.floor(viewport.width * Print_unit);
-                                        canvas.height = Math.floor(viewport.height * Print_unit);
-                                        canvas.classList.add('canvasClass');
-                                        canvas.style = `aspect-ratio : ${viewport.width/viewport.height}`;
-            
-                                        var transform = outputScale !== 1
-                                            ? [Print_unit, 0, 0, Print_unit, 0, 0]
-                                            : null;
-            
-                                        // Render PDF page into canvas context
-                                        var renderContext = {
-                                            canvasContext: context,
-                                            transform: transform,
-                                            viewport: viewport,
-                                            intent: 'print'
-                                        };
-            
-                                        var renderTask = page.render(renderContext);
+                                    var viewport = page.getViewport(scale);
+        
+                                    var canvas = document.createElement('canvas');
+                                    pdf_content.appendChild(canvas);
+                                    var context = canvas.getContext('2d');
     
-                                    },function (reason) {
-                                        // PDF loading error
-                                        console.error(reason);
-                                    });
-                                }
-                            });
-                        })
-                        // .save();
+                                    var Print_unit = 4.19;
+        
+                                    canvas.width = Math.floor(viewport.width * Print_unit);
+                                    canvas.height = Math.floor(viewport.height * Print_unit);
+                                    canvas.classList.add('canvasClass');
+                                    canvas.style = `aspect-ratio : ${viewport.width/viewport.height}`;
+        
+                                    var transform = outputScale !== 1
+                                        ? [Print_unit, 0, 0, Print_unit, 0, 0]
+                                        : null;
+        
+                                    // Render PDF page into canvas context
+                                    var renderContext = {
+                                        canvasContext: context,
+                                        transform: transform,
+                                        viewport: viewport,
+                                        intent: 'print'
+                                    };
+        
+                                    var renderTask = page.render(renderContext);
+
+                                },function (reason) {
+                                    // PDF loading error
+                                    console.error(reason);
+                                });
+                            }
+                        });
                     }
 
                     // ************** Zoom Functionality Method -- START -- ***************
@@ -543,6 +554,90 @@
                         }
 
                     // ======= ========= ======== ========= ==========
+
+                    // ==== Page Size in (pt) unit...
+                    var pageFormats = {
+                            'a0': [2383.94, 3370.39],
+                            'a1': [1683.78, 2383.94],
+                            'a2': [1190.55, 1683.78],
+                            'a3': [841.89, 1190.55],
+                            'a4': [595.28, 841.89],
+                            'a5': [419.53, 595.28],
+                            'a6': [297.64, 419.53],
+                            'a7': [209.76, 297.64],
+                            'a8': [147.40, 209.76],
+                            'a9': [104.88, 147.40],
+                            'a10': [73.70, 104.88],
+                            'b0': [2834.65, 4008.19],
+                            'b1': [2004.09, 2834.65],
+                            'b2': [1417.32, 2004.09],
+                            'b3': [1000.63, 1417.32],
+                            'b4': [708.66, 1000.63],
+                            'b5': [498.90, 708.66],
+                            'b6': [354.33, 498.90],
+                            'b7': [249.45, 354.33],
+                            'b8': [175.75, 249.45],
+                            'b9': [124.72, 175.75],
+                            'b10': [87.87, 124.72],
+                            'c0': [2599.37, 3676.54],
+                            'c1': [1836.85, 2599.37],
+                            'c2': [1298.27, 1836.85],
+                            'c3': [918.43, 1298.27],
+                            'c4': [649.13, 918.43],
+                            'c5': [459.21, 649.13],
+                            'c6': [323.15, 459.21],
+                            'c7': [229.61, 323.15],
+                            'c8': [161.57, 229.61],
+                            'c9': [113.39, 161.57],
+                            'c10': [79.37, 113.39],
+                            'dl': [311.81, 623.62],
+                            'letter': [612, 792],
+                            'government-letter': [576, 756],
+                            'legal': [612, 1008],
+                            'junior-legal': [576, 360],
+                            'ledger': [1224, 792],
+                            'tabloid': [792, 1224],
+                            'credit-card': [153, 243],
+                            'executive' : [522, 756],       // DocGenius Changes....
+                            'statement' : [396, 594],       // DocGenius Changes....
+                        }; 
+
+                    // --- ---- --- for pt Unit ---- ----- ----
+                    function unitMultiplier(unit){
+                            switch (unit) {
+                                case 'pt':
+                                return 1;
+                            
+                                case 'mm':
+                                return 72 / 25.4;
+                            
+                                case 'cm':
+                                return 72 / 2.54;
+                            
+                                case 'in':
+                                return 72;
+                            
+                                case 'px':
+                                return 72 / 96;
+                            
+                                case 'pc':
+                                return 12;
+                            
+                                case 'em':
+                                return 12;
+                            
+                                case 'ex':
+                                return 6;
+                            
+                                default:
+                                return null;
+                            }
+                        };
+
+                        function toPx(value){
+                            var toPt = unitMultiplier('{!pageConfigUnit}') * value;
+                            return (toPt * 1.3334);
+                        }
 
 
                 } catch (error) {

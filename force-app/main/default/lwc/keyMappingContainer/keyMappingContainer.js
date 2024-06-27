@@ -24,6 +24,7 @@ export default class KeyMappingContainer extends LightningElement {
 
     @track relatedChildObjects = [];
     @track selectedChildObjectName;
+    @track selectedChildObjAPI;
 
     @track showFormatKeys = false;
     @track formatDefault = {};
@@ -301,7 +302,7 @@ export default class KeyMappingContainer extends LightningElement {
                 console.log('getChildObjects result  : ', result);
                 if(result.isSuccess){
                     result.fieldMappingsWithObj.forEach(ele =>{
-                        this.relatedChildObjects.push({label : ele.label, value : ele.name, description : ele.additionalInfo})
+                        this.relatedChildObjects.push({label : ele.label, value : ele.name, description : ele.additionalInfo, childObjApi : ele.objectAPI});
                     });
                 }
             })
@@ -453,9 +454,11 @@ export default class KeyMappingContainer extends LightningElement {
         try {
             if(event.detail && event.detail.length){
                 this.selectedChildObjectName = event.detail[0];
+                this.selectedChildObjAPI = this.relatedChildObjects.find(ele => ele.value == event.detail[0]).childObjApi;
             }
             else{
                 this.selectedChildObjectName = null;
+                this.selectedChildObjAPI = null;
             }
         } catch (error) {
             console.log('error in handleChildObjSelection : ', error.stack);
@@ -984,6 +987,7 @@ export default class KeyMappingContainer extends LightningElement {
     openChildSelection(){
         this.dispatchEvent(new CustomEvent('opengenchildtable', {detail : {
             relationshipName : this.selectedChildObjectName,
+            childObjAPI : this.selectedChildObjAPI,
             label : this.relatedChildObjects.find(ele => ele.value == this.selectedChildObjectName)?.label,
         }}));
     }

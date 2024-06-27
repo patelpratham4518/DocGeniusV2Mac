@@ -49,8 +49,16 @@ iframe{
     border-radius: 6px;
     margin: 0.5rem;
     height: calc(100% - 1rem);
-
 }
+.floatingMapping{
+      position: absolute;
+      right: 0%;
+      margin-inline: 1rem 0rem;
+      border-top-right-radius: 0px;
+      border-bottom-right-radius: 0px;
+      transform: translateX(calc(100% + 0.5rem));
+      transition: all linear 0.325s;
+    }
 
 
 .section {
@@ -502,7 +510,7 @@ input:focus{
 
 
   @media only screen and (max-width: 1350px){
-    .fieldMappingContainer{
+    /* .fieldMappingContainer{
       position: absolute;
       right: 0%;
       width: 30rem;
@@ -539,7 +547,7 @@ input:focus{
       font-size: 14px;
       font-family: Bahnschrift, 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
   
-    }
+    } */
   }
 
 

@@ -43,7 +43,9 @@ export default class GoogleDocTemplateEditor extends NavigationMixin(LightningEl
     connectedCallback(){
         try {
 
-           
+           // Added for keyMappingContainer...
+           console.log('resize : ',);
+          window.addEventListener('resize', this.resizeFunction);
             
             
             getLabel({objectName:this.objectName}).then(response=>{
@@ -81,15 +83,12 @@ export default class GoogleDocTemplateEditor extends NavigationMixin(LightningEl
                     })
                 }
             }).catch(error => {
-                console.log('Error ==> ',error);
+                console.log('Error ==> ',error.stack);
             })
-
-
-          
            
           
         } catch (error) {
-            console.error(error)
+            console.log('Error connrectdCallBack==> ',error.stack)
         }
 
     }
@@ -104,6 +103,21 @@ export default class GoogleDocTemplateEditor extends NavigationMixin(LightningEl
             console.error(error)
         }
     }
+
+    resizeFunction = () => {
+        // Added for keyMappingContainer...
+        console.log('OUTPUT : resizeFunction', );
+        var fieldMappingContainer = this.template.querySelector('.fieldMappingContainer');
+        if(window.innerWidth > 1350){
+            fieldMappingContainer.classList.remove('floatingMapping');
+            this.template.querySelector('c-key-mapping-container').toggleMappingContainer(false);
+        }
+        else{
+            fieldMappingContainer.classList.add('floatingMapping');
+            this.template.querySelector('c-key-mapping-container').toggleMappingContainer(true);
+        }
+    }
+
     closePopup(){
         this.showPopup = false
     }
@@ -313,8 +327,8 @@ export default class GoogleDocTemplateEditor extends NavigationMixin(LightningEl
     }
     handleSaveNPreviewIframe(){
         
-            this.saveIframe(true)
-            // this.isPreview = true
+            // this.saveIframe(true)
+            this.isPreview = true
         
     }
     handleSaveNCloseIframe(){

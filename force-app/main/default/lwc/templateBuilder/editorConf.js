@@ -49,6 +49,10 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
               return createPageSetupBtn(note, context)
             }
 
+            var pageBreakBtn = function(context){
+              return createPageBreakBtn(note, context);
+            }
+
             // Initalize SummerNote Editor...
             $(note.summerNote).summernote({
     
@@ -66,15 +70,15 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
                 toolbar: [
 
                   // Customized Toolbar 
-                  ['custom_backup', ['undo','redo']],
+                  // ['custom_backup', ['undo','redo']],
                   ['custom_pageSetup', ['pageSetup']],
                   ['custom_fontFormattings', ['fontname', 'fontsize', 'fontResizer','forecolor', 'backcolor', 'bold','italic', 'underline', 'strikethrough','superscript', 'subscript']],
                   ['custom_paragraphFormatting', ['ul', 'ol', 'paragraph', 'height']],
                   ['custom_style', ['style']],
                   ['custom_insert', ['table','link', 'picture', 'hr']],
+                  ['custom_pageBreak', ['pageBreak']],
                   ['custom_clearFormatting', ['truncate','clear']],
-                  ['custom_view', ['fullscreen', 'help']],
-                  // ['custom_decisions', ['setdecisionBtns']],
+                  ['custom_view', ['codeview', 'help']],
                   ['custom_title', ['titleBtn']],
 
                 ],
@@ -109,6 +113,7 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
                     titleBtn : createBuilderTitle,
                     truncate : truncateBtn,
                     pageSetup : pageSetupBtn,
+                    pageBreak : pageBreakBtn,
                 },
                 tabsize: 2,
                 disableResizeEditor: true,
@@ -187,7 +192,6 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
                     onChange: function(){
                       // function(contents, context, $editable)
                         setFontResizerValue(note);
-                        // setFieldNameTagging(note, $editable);
                         
                     },
                     onChangeCodeview: null,
@@ -716,70 +720,67 @@ function createPageSetupBtn(note, context){
     ]).render();
 }
 
- function createTruncateBtn(note){
+//  ==== ===== ======= ====== Page Break Methods ==== ==== ==== ====
+function createPageBreakBtn(note, context){
+  var ui = $.summernote.ui;
+  var options = context.options;
+  var lang = options.langInfo;
+  lang.pageBreak = 'Page Break';
+
+  return ui.buttonGroup([
+    ui.button({
+      className : 'pageBreakBtn',
+      contents : customeIcons.pageBreak,
+      tooltip : 'Page Break',
+      click: function () {
+        insertPageBreak(note, context);
+      }
+    })
+  ]).render();
+}
+
+ function insertPageBreak(note, context){
+    try {
+      console.log('getSelection().rangeCount : ', getSelection().rangeCount);
+      if (getSelection().rangeCount > 0) {
+        var el = getSelection().getRangeAt(0).commonAncestorContainer.parentNode;
+        if ($(el).hasClass('note-editable')) {
+          el = getSelection().getRangeAt(0).commonAncestorContainer;
+        }
+        if (!$(el).hasClass('page-break')) {
+          if ($(el).next('div.page-break').length < 1)
+            $('<div class="page-break"></div>').insertAfter(el);
+        }
+      } else {
+        if ($('.note-editable div').last().attr('class') !== 'page-break')
+          $('.note-editable').append('<div class="page-break"></div>');
+      }
+
+      // Launching this method to force Summernote sync it's content with the bound textarea element
+      context.invoke('editor.insertText','');
+    } catch (error) {
+      console.log(' error : ', error.stack);
+    }
+ }
+
+ function createTruncateBtn(note, context){
     var ui = $.summernote.ui;
-    // var options = context.options;
-    // var lang = context.options.langInfo;
-    // lang.truncate = 'Truncate Text';
-    // var editable = context.layoutInfo.editable;
+    var options = context.options;
+    var lang = context.options.langInfo;
+    lang.truncate = 'Truncate Text';
+    var editable = context.layoutInfo.editable;
 
     return ui.button({
-        // className: 'truncate-btn',
+        className: 'truncate-btn',
         contents : customeIcons.truncate,
-        // tooltip  : lang.truncate,
+        tooltip  : lang.truncate,
         click: function (context) {
           // var rng = context.invoke('createRange', editable);
           // console.log('rng : ', rng.toString());
           // console.log(editable.text());
           $(note.summerNote).summernote('saveRange'); 
-          setFieldNameTagging(note, context);
+
           $(note.summerNote).summernote('restoreRange'); 
         }
     }).render();
- }
-
- function setFieldNameTagging(note){
-  try {
-      var pattern = /{{#(.*?)}}/;
-      var makeActive;
-
-      if(!note.noteEditorFrame.querySelector('.truncate-btn').classList.contains('active')){
-        note.noteEditorFrame.querySelector('.truncate-btn').classList.add('active');
-        makeActive = true;
-      }
-      else{
-        note.noteEditorFrame.querySelector('.truncate-btn').classList.remove('active');
-        makeActive = false;
-      }
-
-      var editor = note.noteEditorFrame.querySelector(`[data-editor="${note.selector}"]`);
-      function transverNode(node){
-        if(node.childNodes){
-          for (var i = 0; i < node.childNodes.length; i++) {
-            var ele = node.childNodes[i];
-              var matcher = pattern.exec(ele.innerText);
-              if(matcher !== null && ListOfFielMappingKeys.includes(matcher[1])){
-                ele.innerHTML = ele.innerHTML.replace(matcher[0], `<span class="field-mapping">${matcher[0]}</span>`);
-              }
-          }
-        }
-     }
-
-     if(makeActive){
-       transverNode(editor);
-     }
-     else{
-        var fieldMapping = editor.querySelectorAll('.field-mapping');
-        if(fieldMapping.length){
-          for (var i = 0; i < fieldMapping.length; i++) {
-            var ele = fieldMapping[i];
-            var textNode = document.createTextNode(ele.innerText)
-            ele.parentNode.replaceChild(textNode, ele)
-          }
-        }
-     }
-
-  } catch (error) {
-    console.warn('error in editorConfig > setFieldNameTagging : ', error.stack);
-  }
  }

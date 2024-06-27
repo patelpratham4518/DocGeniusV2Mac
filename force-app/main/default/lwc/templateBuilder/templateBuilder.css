@@ -236,6 +236,8 @@ input[type=number]::-webkit-outer-spin-button {
     }
 
     /* ====== ====== ======= Top Section ===== ===== ========== */
+
+     /* #fieldMapping... */
     .displayFieldMappings{
       display: flex !important;
     }
@@ -274,9 +276,11 @@ input[type=number]::-webkit-outer-spin-button {
     .openFieldMapping{
       transform: translateX(0px) !important;
     }
-    .toggleFieldMapping{
+    /* .toggleFieldMapping{
       display: none;
-    }
+    } */
+    /* #fieldMapping... END */ 
+
     .mappingTopSection{
       width: 100%;
       min-height: 2rem;
@@ -614,7 +618,7 @@ input[type=number]::-webkit-outer-spin-button {
       padding: 4px 8px 4px 16px;
 
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: flex-start;
       flex-wrap: nowrap;
       flex-direction: row;
@@ -658,12 +662,22 @@ input[type=number]::-webkit-outer-spin-button {
       margin-top: 0.5rem;
     }
     .logoSection{
-      flex-grow: 1;
+      /* flex-grow: 1; */
       height: 100%;
       margin-right: 0.5rem;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
       align-items: center;
+    }
+    .toolBarHeaderText{
+      height: max-content;
+      flex-grow: 1;
+      padding-inline: 2.5rem;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: #01aeff;
+      font-family: var(--ff_Montserrat);
     }
     
     /* ==== ====== ======= Field mapping Section ===== ===== ====== ====== */
@@ -985,9 +999,9 @@ input[type=number]::-webkit-outer-spin-button {
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid #9ee0ff;
+      /* border: 1px solid #9ee0ff; */
       border-radius: 6px;
-      padding: 1rem;
+      /* padding: 1rem; */
     }
 
      /* ============ =============== DETAIl EDIT Section -- START -- ================= ================ */
@@ -996,17 +1010,21 @@ input[type=number]::-webkit-outer-spin-button {
       min-width: 50%;
       height: 100%;
       padding-inline: 1rem;
-      /* border-right: 1px dashed black; */
       overflow: auto;
+      scrollbar-color: #01aeff transparent;
+      scrollbar-width: thin;
     }
 
-    .detailHeader {
-        width: 100%;
-        text-align: center;
-        font-size: 16px;
-        color: rgb(46, 46, 46);
-        font-family: var(--ff_Bahnschrift);
-        margin-bottom: 0.5rem;
+    .detailHeader, .pageConfigTitle {
+      width: 100%;
+      text-align: center;
+      font-size: 16px;
+      color: white;
+      font-family: var(--ff_Bahnschrift);
+      margin-bottom: 0.5rem;
+      padding: 0.313rem 1rem;
+      background: #01aeff;
+      border-radius: 6px;
     }
     
     .detailEditSection {
@@ -1090,9 +1108,9 @@ input[type=number]::-webkit-outer-spin-button {
         .toggleBtnBg::before{
           position: absolute;
           top: 0px;
-          left: auto;
+          right: auto;
           transform: translateX(0%);
-          right: 0% !important;
+          left: 0% !important;
           content: "";
           height: 100%;
           aspect-ratio: 1;
@@ -1106,7 +1124,8 @@ input[type=number]::-webkit-outer-spin-button {
           position: absolute;
           top: 0px;
           left: 0px;
-          transform: translateX(-50%);
+          /* left: auto; */
+          transform: translateX(0%);
           display: flex;
           justify-content: center;
           align-items: center;
@@ -1119,28 +1138,29 @@ input[type=number]::-webkit-outer-spin-button {
           font-size: 14px;
           display: flex;
           justify-content: center;
-          font-family: Bahnschrift, 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+          font-family: var(--ff_Bahnschrift);
           user-select: none;
           line-height: 22px;
           letter-spacing: 0.5px;
+          margin-bottom: 2px;
         }
         .checkBox:checked + label .toggleBtnBg::before{
-          transform: translateX(100%);
-          right: 100% !important;
+          transform: translateX(-100%);
+          left: 100% !important;
         }
         .checkBox:checked + label .StatusText{
-          transform: translateX(0%);
+          transform: translateX(-50%);
         }
-
+    
         .checkBox:checked + label .toggleDiv{
-          background-color: #14AD00;
+          /* background-color: #14AD00; */
           background-color: #00aeff;
         }
 
     .previewLabel{
       font-size: 13px;
       padding-inline: 0.25rem;
-      color: #009ae1;
+      color: #757575;
       font-family: var(--ff_Bahnschrift);
     }
     .nonEditInput{
@@ -1190,9 +1210,10 @@ input[type=number]::-webkit-outer-spin-button {
       min-width: 50%;
       height: 100%;
       font-family: var(--ff_Bahnschrift);
-      padding-left: 1rem;
+      padding-inline: 1rem;
       overflow: auto;
-
+      scrollbar-color: #01aeff transparent;
+      scrollbar-width: thin;
     }
     .pageConfig_sub{
       display: flex;
@@ -1204,13 +1225,6 @@ input[type=number]::-webkit-outer-spin-button {
       margin-bottom: 0.5rem;
       padding-bottom: 1rem;
       border-bottom: 1px dashed rgb(106 211 255);
-    }
-    .pageConfigTitle{
-      width: 100%;
-      text-align: center;
-      font-size: 16px;
-      color: rgb(46, 46, 46);
-      margin-bottom: 0.5rem;
     }
     .pageConfigOptions{
       width: 100%;
@@ -1435,7 +1449,7 @@ input[type=number]::-webkit-outer-spin-button {
       width: calc(100% - (var(--pdfActualPreviewWidth) * 2));
     }
 
-    /* Generate Child Record Table Popup CSS */
+    /* --- ---- Generate Child Record Table Popup CSS --- ---- ---- */
     .genChildTablePopup{
       position: fixed;
       top: 0;
@@ -1450,7 +1464,7 @@ input[type=number]::-webkit-outer-spin-button {
     }
     .genChildTablePopup_sub{
       width: 80%;
-      height: 90%;
+      height: 95%;
       position: relative;
       border-radius: 6px;
       overflow: hidden;
@@ -1461,7 +1475,7 @@ input[type=number]::-webkit-outer-spin-button {
       justify-content: center;
     }
     .genChildHader{
-      height: 3rem;
+      height: 5rem;
       width: 100%;
       border-bottom: 1px solid rgb(9 175 255);
       background: white;
@@ -1531,19 +1545,24 @@ input[type=number]::-webkit-outer-spin-button {
     .ChildTablePlaceholder{
       font-size: 16px;
       color: rgb(55, 55, 55);
-      position: absolute;
-      left: 1rem;
-      top: 0px;
     }
     .generatedTable table{
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
+      width: 100% !important;
+      border-collapse: collapse !important;
+      table-layout: fixed !important;
     }
-    .generatedTable td{
-      border: 1px solid #808080;
-      padding: 5px 3px;
+    .childTableFrame{
+      padding-top: 0 !important;
     }
+    .childTableArea{
+      max-width: 100% !important;
+    }
+    .childTableEditable{
+      min-height: 5rem !important;
+      padding: 16px 67px  !important;
+      box-shadow: rgba(50, 50, 93, 0.25) 0px 0px 8px -2px, rgba(0, 0, 0, 0.3) 0px 0px 4px -3px !important;
+    }
+
     .ChildTableOptions{
       min-width: 12rem;
       padding-inline: 1rem;
@@ -1558,32 +1577,58 @@ input[type=number]::-webkit-outer-spin-button {
     }
     .srNoOption{
       width: 100%;
-      height: 50%;
+      height: max-content;
+      padding-block: 1rem;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       flex-direction: row;
     }
     .srNoOption_label{
-      width: 100%;
+      flex-grow: 1;
       margin-bottom: 0.25rem;
     }
     .srNoOption_toggel{
-      width: 100%;
+      margin-right: 1rem;
     }
     .copyButton{
       width: 100%;
       text-align: center;
-      background: #02afff;
       outline: none;
       border: none;
       border-radius: 6px;
       padding: 0.25rem;
       cursor: pointer;
+      
+      /* background: #02afff; */
+      background: linear-gradient(to right, #02afff 40%, #00e79c 48%, #00e79c 52%, #02afff 60%);
+      background-size: 500% 100%;
+      background-position-x: left;
+      background-repeat: no-repeat;
 
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 0.5rem;
+    }
+    .copyButton.copied{
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 100%;
+      animation: copiedAnimation 1s linear 0s 1 forwards normal;
+    }
+    @keyframes copiedAnimation {
+        0%{
+          background-size: 100% 100%;
+        }
+        35%{
+          background-size: 2500% 100%;
+        }
+        90%{
+          /* background-size: 1500% 100%; */
+        }
+        100%{
+          /* background: rgb(241 241 241 / 82%); */
+        }
     }
     .copyButton:disabled{
       background: rgb(214 214 214);
@@ -1602,9 +1647,13 @@ input[type=number]::-webkit-outer-spin-button {
       font-size: 15px;
       font-family: var(--ff_Montserrat);
     }
+    /* --- ---- Generate Child Record Table Popup CSS -- END --- --- ---- ---- */
+    
 /* ====== ========= ========= ========== Media Query ======== ======== ======= ========= ========= ========= ======== ======= */
 
 @media only screen and (max-width: 1440px){
+  
+  /* #fieldMapping... */
   .fieldMappingContainer{
     width: 30rem;
   }
@@ -1616,44 +1665,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 @media only screen and (max-width: 1350px){
-  /* .fieldMappingContainer{
-    position: absolute;
-    right: 0%;
-    width: 30rem;
-    margin-inline: 1rem 0rem;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;
-    transform: translateX(calc(100% + 0.5rem));
-    transition: all linear 0.325s;
-  } */
-  /* .openFieldMapping{
-    transform: translateX(0px) !important;
-  } */
-  .toggleFieldMapping{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.25rem;
-
-    position: absolute;
-    top: 0.5rem;
-    right: 100%;
-    
-    width: 5.5rem;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid #00000021;
-    border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px;
-    background: white;
-    overflow: hidden;
-    transition: all linear 0.325s;
-    cursor: pointer;
-    user-select: none;
-
-    font-size: 14px;
-    font-family: var(--ff_Bahnschrift);
-
-  }
+  
 }
 @media only screen and (max-width: 1024px){
 
