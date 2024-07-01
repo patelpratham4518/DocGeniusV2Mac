@@ -35,9 +35,8 @@ export default class GoogleDocTemplateEditor extends NavigationMixin(LightningEl
     @track profile
     templateBg = new_template_bg
     templateBgMain = leftBackground
-    
 
-    
+    initialRender = true;
     isPreview = false
     
     connectedCallback(){
@@ -98,6 +97,10 @@ export default class GoogleDocTemplateEditor extends NavigationMixin(LightningEl
             this.template.host.style.setProperty('--background-image-url',`url(${this.templateBg})`);
             this.template.host.style.setProperty('--main-background-image-url',`url(${this.templateBgMain})`);
             this.setActiveTab()
+            if(this.initialRender && this.template.querySelector('.fieldMappingContainer')){
+                this.resizeFunction();
+                this.initialRender = false;
+            }
 
         } catch (error) {
             console.error(error)
