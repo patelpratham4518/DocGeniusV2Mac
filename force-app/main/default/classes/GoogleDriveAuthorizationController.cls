@@ -1,3 +1,12 @@
+/*******************************************************
+* Name          : GoogleDriveAuthorizationController
+* Author        : Tirth
+* Create Date   : 15/04/2024 
+* UsedBy        : integrationDashBoard Component
+* Test Class    : GoogleDriveAuthorizationControllerTest
+* Description   : Apex Class used for managing integration of google drive using single click.
+* Company       : MV Clouds
+*******************************************************/
 public with sharing class GoogleDriveAuthorizationController {
     @AuraEnabled
     public static Map<String, Object> checkgoogleauth(){
@@ -20,48 +29,62 @@ public with sharing class GoogleDriveAuthorizationController {
         }
     }
 
+
     @AuraEnabled
     public static String getAuthCode(String clientId, String clientSecret) {
-        if (String.isBlank(clientId) || String.isBlank(clientSecret)) {
-            return 'Both Client ID and Client Secret are required.';
+        try{
+            if (String.isBlank(clientId) || String.isBlank(clientSecret)) {
+                return 'Both Client ID and Client Secret are required.';
+            }
+
+            AuthProviderSettings__c settings = AuthProviderSettings__c.getInstance();
+            if (settings == null) {
+                settings = new AuthProviderSettings__c();
+            }
+
+            settings.ClientId__c = clientId;
+            settings.ClientSecret__c = clientSecret;
+
+            String authUrl = authcode(clientId, clientSecret);
+            upsert settings;
+            System.debug('This is url-->'+authUrl);
+            return authUrl;
         }
-
-        AuthProviderSettings__c settings = AuthProviderSettings__c.getInstance();
-        if (settings == null) {
-            settings = new AuthProviderSettings__c();
+        catch(Exception e){
+            Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'getAuthCode');
+            return null;
         }
-
-        settings.ClientId__c = clientId;
-        settings.ClientSecret__c = clientSecret;
-
-        String durl = authcode(clientId, clientSecret);
-        upsert settings;
-        System.debug('This is url-->'+durl);
-        return durl;
     }
+
 
     public static String authcode(String clientId, String clientSecret){
-        String AUTH_URL = 'https://accounts.google.com/o/oauth2/auth';
-        String REDIRECT_URI = 'https://mvclouds17-dev-ed.develop.my.salesforce-sites.com/';  //REPLACE IT WITH VFPAGE URL
-        String GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
-        String authUrl = AUTH_URL + '?response_type=code' +
-                        '&client_id=' + clientId +
-                        '&redirect_uri=' + REDIRECT_URI +
-                        '&access_type=offline' +
-                        '&approval_prompt=force'+
-                        '&state=state_parameter_passthrough_value' +
-                        '&scope=' + GOOGLE_DRIVE_SCOPE;
-        return authUrl;
+        try{
+            String AUTH_URL = 'https://accounts.google.com/o/oauth2/auth';
+            String REDIRECT_URI = 'https://mvclouds17-dev-ed.develop.my.salesforce-sites.com/';  //REPLACE IT WITH VFPAGE URL
+            String GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
+            String authUrl = AUTH_URL + '?response_type=code' +
+                            '&client_id=' + clientId +
+                            '&redirect_uri=' + REDIRECT_URI +
+                            '&access_type=offline' +
+                            '&approval_prompt=force'+
+                            '&state=state_parameter_passthrough_value' +
+                            '&scope=' + GOOGLE_DRIVE_SCOPE;
+            return authUrl;
+        }
+        catch(Exception e){
+            Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'authcode');
+            return null;
+        }
     }
+
 
     @AuraEnabled
     public static String authorizeGoogle(String authcode){
+        try{
         AuthProviderSettings__c settings = AuthProviderSettings__c.getInstance();
-            string client_id = settings.ClientId__c;
-            string client_secret = settings.ClientSecret__c;
-            String REDIRECT_URI = 'https://mvclouds17-dev-ed.develop.my.salesforce-sites.com/';
-
-            
+        string client_id = settings.ClientId__c;
+        string client_secret = settings.ClientSecret__c;
+        String REDIRECT_URI = 'https://mvclouds17-dev-ed.develop.my.salesforce-sites.com/';            
         Map<String, String> result = generaterefreshtoken(client_id, client_secret, REDIRECT_URI, authcode);
         String refresh = result.get('refresh_token');
         String access = result.get('access_token');
@@ -96,11 +119,12 @@ public with sharing class GoogleDriveAuthorizationController {
         else{
             return 'fail';
         }
-        
-        
-
-        
+        }catch(Exception e){
+            Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'getuserdata');
+            return null;
+        }
     }
+
 
     public static HttpRequest getuserdata(String acctok){
         try {
@@ -110,13 +134,12 @@ public with sharing class GoogleDriveAuthorizationController {
             req.setMethod('GET');
             return req;
         } catch (Exception e) {
-            Log_Handler.store_Exception(e, 'GoogleSuccessController', 'getuserdata');
+            Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'authorizeGoogle');
             System.debug('Exception of getuserdata got invoked');
             return null;
-        }
-        
-        
+        }     
     }
+
 
     @AuraEnabled
     public static String fetchUserDetails(String access) {
@@ -135,13 +158,12 @@ public with sharing class GoogleDriveAuthorizationController {
                 return 'false';
             }
         } catch (Exception e) {
-            Log_Handler.store_Exception(e, 'GoogleSuccessController', 'fetchUserDetails');
+            Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'fetchUserDetails');
             System.debug('Exception of fetchUserDetails got invoked');
             return null;
         }
-        
-        
     }
+
 
     private static HttpResponse sendHttpRequest(HttpRequest req) {
         try {
@@ -149,13 +171,15 @@ public with sharing class GoogleDriveAuthorizationController {
             req.setTimeout(60000);
             return h.send(req);
         } catch (Exception e) {
-            Log_Handler.store_Exception(e, 'GoogleSuccessController', 'sendHttpRequest');
+            Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'sendHttpRequest');
             System.debug('Exception of sendHttpRequest got invoked');
             return null;
         }
     }
 
+
     public static Map<String, String> generaterefreshtoken(String client_id, String client_secret, String REDIRECT_URI, String authcode){
+        try{
             String SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
             String ENDPOINT = 'https://oauth2.googleapis.com/token';
             HttpRequest request = new HttpRequest();
@@ -173,7 +197,6 @@ public with sharing class GoogleDriveAuthorizationController {
     
             Http http = new Http();
             HttpResponse response = http.send(request);
-    
             // Parse the response and extract refresh token
             Map<String, String> result = new Map<String, String>();
             System.debug(response.getStatusCode());
@@ -191,119 +214,36 @@ public with sharing class GoogleDriveAuthorizationController {
                                     ', Response Body: ' + response.getBody());
             }
             System.debug(result);
-
             return result;
+        }catch(Exception e){
+            Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'generaterefreshtoken');
+            return null;
         }
+    }
 
-    // @AuraEnabled
-    // public static String redirectUrl(){
-    //         try {
-    //             String url = ''+System.Url.getOrgDomainUrl();
-    //             String REDIRECT_URI = '';
-    //             if(url.contains('develop.my.salesforce.com')) {
-    //             System.debug('System org url -->'+url);
-    //             String baseUrl = url.substringBeforeLast('.develop.my.salesforce.com');
-    //             baseUrl = baseUrl.substringAfter('Url:[delegate=');
-    //             REDIRECT_URI = baseUrl + '--c.develop.vf.force.com/apex/googleSuccessPage';
-    //             }else if(url.contains('sandbox.my.salesforce.com')){
-    //                 System.debug('System org url -->'+url);
-    //                 String baseUrl = url.substringBeforeLast('.sandbox.my.salesforce.com');
-    //                 baseUrl = baseUrl.substringAfter('Url:[delegate=');
-    //                 REDIRECT_URI = baseUrl + '--c.sandbox.vf.force.com/apex/googleSuccessPage';
-    //             }
-    //             else if(url.contains('scratch.my.salesforce.com')){
-    //                 System.debug('System org url -->'+url);
-    //                 String baseUrl = url.substringBeforeLast('.scratch.my.salesforce.com');
-    //                 baseUrl = baseUrl.substringAfter('Url:[delegate=');
-    //                 REDIRECT_URI = baseUrl + '--c.scratch.vf.force.com/apex/googleSuccessPage';
-    //             }else {
-    //                 System.debug('System org url -->'+url);
-    //                 String baseUrl = url.substringBeforeLast('.my.salesforce.com');
-    //                 baseUrl = baseUrl.substringAfter('Url:[delegate=');
-    //                 REDIRECT_URI = baseUrl + '--c.vf.force.com/apex/googleSuccessPage';
-    //             }
-    //             return REDIRECT_URI;
-    //         } catch (Exception e) {
-    //             Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'redirectUrl');
-    //             System.debug('Exception of redirecturl got invoked');
-    //             return null;
-    //         }
-            
-    // }
-
+    
     @AuraEnabled
     public static Boolean unauthorize(){
         try {
-            AuthProviderSettings__c settings = AuthProviderSettings__c.getInstance();
-        if(settings != null){
-            settings.ClientId__c = '';
-            settings.ClientSecret__c = '';
-            settings.username__c = '';
-            settings.LinkedDate__c = '';
-            settings.email__c = '';
-            settings.refresh_token__c = '';
-            settings.access_token__c = '';
-            settings.WorkingStatus__c = false;
-            upsert settings;
-            return true;
-        }
-        return false;
+            AuthProviderSettings__c settings = [SELECT Id, username__c FROM AuthProviderSettings__c LIMIT 1];
+            if(settings != null){
+                settings.ClientId__c = '';
+                settings.ClientSecret__c = '';
+                settings.username__c = '';
+                settings.LinkedDate__c = '';
+                settings.email__c = '';
+                settings.refresh_token__c = '';
+                settings.access_token__c = '';
+                settings.photolink__c = '';
+                settings.WorkingStatus__c = false;
+                update settings;
+                return true;
+            }
+            return false;
         } catch (Exception e) {
             Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'unauthorize');
             System.debug('Exception of unauthorize got invoked');
             return null;
         }
-        
     }
-
-
-
-    @AuraEnabled
-    public static String authorize(String clientId, String clientSecret) {
-        // Validate inputs (you may want to add more validation logic)
-        try {
-            if (String.isBlank(clientId) || String.isBlank(clientSecret)) {
-            return 'Both Client ID and Client Secret are required.';
-            }
-
-            AuthProviderSettings__c settings = AuthProviderSettings__c.getInstance();
-            if (settings == null) {
-                settings = new AuthProviderSettings__c();
-            }
-
-            settings.ClientId__c = clientId;
-            settings.ClientSecret__c = clientSecret;
-
-            String durl = authcode(clientId, clientSecret);
-            upsert settings;
-            System.debug('This is url-->'+durl);
-            return durl;
-        } catch (Exception e) {
-            Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'authorize');
-            System.debug('Exception of authorize got invoked');
-            return null;
-        }
-        
-    }
-
-    // public static String authcode(String clientId, String clientSecret){
-    //     try {
-    //         String REDIRECT_URI = 'https://mvclouds17-dev-ed.develop.my.salesforce-sites.com/';
-    //         // String REDIRECT_URI = extractedString;
-    //         String AUTH_URL = 'https://accounts.google.com/o/oauth2/auth';
-    //         String GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
-    //         String authUrl = AUTH_URL + '?response_type=code' +
-    //                         '&client_id=' + clientId +
-    //                         '&redirect_uri=' + REDIRECT_URI +
-    //                         '&access_type=offline' +
-    //                         '&approval_prompt=force'+
-    //                         '&state=state_parameter_passthrough_value' +
-    //                         '&scope=' + GOOGLE_DRIVE_SCOPE;
-    //         return authUrl;
-    //         } catch (Exception e) {
-    //             Log_Handler.store_Exception(e, 'GoogleDriveAuthorizationController', 'authcode');
-    //             System.debug('Exception of authcode got invoked');
-    //             return null;
-    //         }
-    // }
 }

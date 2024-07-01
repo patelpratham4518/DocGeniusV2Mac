@@ -79,7 +79,6 @@
   border: 1px #00adff;
   border-style: dashed;
   transition: all linear 0.2s;
-  cursor: pointer;
 
   &:hover{
     scale: 1.1;
@@ -94,6 +93,7 @@
   box-shadow: 0px 0px 15px 0px #02afff21;
   border-radius: 0.5rem;  
   background-color: white;
+  cursor: pointer;
 
   display: flex;
   justify-content: center;
@@ -810,9 +810,9 @@
     .toggleBtnBg::before{
       position: absolute;
       top: 0px;
-      left: auto;
+      right: auto;
       transform: translateX(0%);
-      right: 0% !important;
+      left: 0% !important;
       content: "";
       height: 100%;
       aspect-ratio: 1;
@@ -826,7 +826,8 @@
       position: absolute;
       top: 0px;
       left: 0px;
-      transform: translateX(-50%);
+      /* left: auto; */
+      transform: translateX(0%);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -846,15 +847,15 @@
       margin-bottom: 2px;
     }
     .checkBox:checked + label .toggleBtnBg::before{
-      transform: translateX(100%);
-      right: 100% !important;
+      transform: translateX(-100%);
+      left: 100% !important;
     }
     .checkBox:checked + label .StatusText{
-      transform: translateX(0%);
+      transform: translateX(-50%);
     }
 
     .checkBox:checked + label .toggleDiv{
-      background-color: #14AD00;
+      /* background-color: #14AD00; */
       background-color: #00aeff;
     }
     .tempVersion{

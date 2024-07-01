@@ -311,7 +311,8 @@
               delTable: 'Delete table'
             },
             hr: {
-              insert: 'Insert Horizontal Rule'
+              // insert: 'Insert Horizontal Rule'
+              insert: 'Insert Page Break'       // DocGenius Changes....
             },
             style: {
               style: 'Style',

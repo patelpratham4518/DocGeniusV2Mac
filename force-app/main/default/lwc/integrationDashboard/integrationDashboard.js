@@ -149,10 +149,6 @@ export default class IntegrationDashborad extends NavigationMixin(LightningEleme
         }, 1000);
     }
 
-    // loadingResource(){
-
-    // }
-
     toggleGreenColor(){
         this.isGreen = !this.isGreen;
     }
@@ -361,23 +357,11 @@ export default class IntegrationDashborad extends NavigationMixin(LightningEleme
         }
     }
 
-    // hideModalBox(){
-    //     this.isSpinner = true;
-    //     this.ispopup = false;
-    //     this.isAws = false;
-    //     this.isOneDrive = false;
-    //     this.isGoogle = false;
-    //     this.isDropBox = false;
-    //     this.isSpinner = false;
-    //     this.clientId = null;
-    //     this.clientSecret = null;
-    //     this.bucket = null;
-    //     this.nickname = null;
-    // }
 
     closeSpinner(){
         this.isSpinner = false;
     }
+
 
     handleDragEnd(event) {
         event.preventDefault();
@@ -385,20 +369,18 @@ export default class IntegrationDashborad extends NavigationMixin(LightningEleme
         this.template.querySelector('.dropandstatus').style.opacity = '1';
     }
 
+
     handleClientId(event) {
         this.clientId = event.target.value.trim();
         console.log(this.clientId);
     }
+
 
     handleClientSecret(event) {
         this.clientSecret = event.target.value.trim();
         console.log(this.clientSecret);
     }
 
-    // handleEmail(event){
-    //     this.email = event.target.value.trim();
-    //     console.log(this.email);
-    // }
 
     handleBucket(event){
         this.bucket = event.target.value.trim();
@@ -430,44 +412,41 @@ export default class IntegrationDashborad extends NavigationMixin(LightningEleme
 
     handleGoogleAuthorization(){
         try{
-        if (!this.authcode) {
-            console.log('All details are compulsory');
-            return;
-        }
-        else{
-            console.log('going for integration');
-            authorizeGoogle({ authcode: this.authcode })
-            .then(result =>{
-                if(result === 'success'){
-                    console.log('success');
-                    const messageContainer = this.template.querySelector('c-message-popup')
-                    messageContainer.showMessageToast({
-                        status: 'success',
-                        title: 'Success',
-                        message : 'Successfully connected to Google Drive',
-                    });
-                    
-                }
-                else{
-                    console.log('error');
-                    const messageContainer = this.template.querySelector('c-message-popup')
-                    messageContainer.showMessageToast({
-                        status: 'error',
-                        title: 'error',
-                        message : 'Error connecting to Google Drive',
-                    });
-                    }
-                })
+            if (!this.authcode) {
+                console.log('All details are compulsory');
+                return;
             }
-        }
-        
-        catch(error){
+            else{
+                console.log('going for integration');
+                authorizeGoogle({ authcode: this.authcode })
+                .then(result =>{
+                    if(result === 'success'){
+                        console.log('success');
+                        const messageContainer = this.template.querySelector('c-message-popup')
+                        messageContainer.showMessageToast({
+                            status: 'success',
+                            title: 'Success',
+                            message : 'Successfully connected to Google Drive',
+                        });
+                        this.checkinggoogleauth();
+                    }
+                    else{
+                        console.log('error');
+                        const messageContainer = this.template.querySelector('c-message-popup')
+                        messageContainer.showMessageToast({
+                            status: 'error',
+                            title: 'error',
+                            message : 'Error connecting to Google Drive',
+                        });
+                        }
+                    })
+                }
+            } catch(error){
             console.log(error.getMessage);
             console.error('this is error'+JSON.stringify(error));
         }
     }
     
-
 
     handleAuthCode(event) {
         console.log('inside parent');
@@ -483,62 +462,6 @@ export default class IntegrationDashborad extends NavigationMixin(LightningEleme
                 console.error('Error:', error);
             })
         }
-    //     const inputs = this.template.querySelectorAll('input');
-    //     inputs.forEach(input =>{
-    //         if(input.value == null || input.value == ''){
-    //             input.classList.add('error-border');
-    //         }
-    //         else{
-    //             input.classList.remove('error-border');
-    //         }
-    //     })
-    //     if (!this.clientId || !this.clientSecret) {
-    //         console.log('both client id and secret are compulsary');
-    //         return;
-    //     }
-    //     else{
-    //     console.log('Going for authorization');
-    //     this.ispopup = false;
-    //     this.isGoogle = false;
-    //     googleDriveAuthorization({clientId: this.clientId, clientSecret: this.clientSecret})
-    //     .then(durl => {
-    //         // Navigate to the authorization URL
-    //         // const windowWidth = 500;
-    //         // const windowHeight = 600;
-    //         // const screenWidth = window.screen.width;
-    //         // const screenHeight = window.screen.height;
-    //         // const left = Math.max(0, (screenWidth - windowWidth) / 2);
-    //         // const top = Math.max(0, (screenHeight - windowHeight) / 2);
-
-    //         window.location.href = durl;
-
-    //         // this[NavigationMixin.Navigate]({
-    //         //     type: 'standard__webPage',
-    //         //     attributes: {
-    //         //         url: durl
-    //         //     }
-    //         // }
-    //         // );
-
-    //         // Open a new window with the authorization URL
-    //         // const newWindow = window.open(durl, '_blank', `width=${windowWidth},height=${windowHeight},left=${left},top=${top},scrollbars=yes,resizable=yes`);
-
-    //         // Focus the new window
-    //         // if (newWindow) {
-    //         //     newWindow.focus();
-    //         // }
-        
-    //         // window.setTimeout(function(){
-    //         //     console.log('this is location-->'+newWindow.location.href);
-    //         // },2000);
-        
-    //     })
-    //     .catch(error => {
-    //         console.error('Error:', error);
-    //     });
-    //     this.clientId = '';
-    //     this.clientSecret = '';
-    //     }
     }
 
     handleAwsAuthorization(){
@@ -714,29 +637,7 @@ export default class IntegrationDashborad extends NavigationMixin(LightningEleme
         this.isOneDrive = false;
         oneDriveAuthorization({clientId: this.clientId, clientSecret: this.clientSecret})
         .then(durl => {
-
             window.location.href = durl;
-
-            // Navigate to the authorization URL
-            // const windowWidth = 500;
-            // const windowHeight = 600;
-            // const screenWidth = window.screen.width;
-            // const screenHeight = window.screen.height;
-            // const left = Math.max(0, (screenWidth - windowWidth) / 2);
-            // const top = Math.max(0, (screenHeight - windowHeight) / 2);
-
-            // // Open a new window with the authorization URL
-            // const newWindow = window.open(durl, '_blank', `width=${windowWidth},height=${windowHeight},left=${left},top=${top},scrollbars=yes,resizable=yes`);
-
-            // // Focus the new window
-            // if (newWindow) {
-            //     newWindow.focus();
-            // }
-        
-            // window.setTimeout(function(){
-            //     console.log('this is location-->'+newWindow.location.href);
-            // },1000);
-        
         })
         .catch(error => {
             console.error('Error:', error);
@@ -766,29 +667,7 @@ export default class IntegrationDashborad extends NavigationMixin(LightningEleme
         this.isDropBox = false;
         dropboxAuthorization({clientId: this.clientId, clientSecret: this.clientSecret})
         .then(durl => {
-
             window.location.href = durl;
-
-            // Navigate to the authorization URL
-            // const windowWidth = 500;
-            // const windowHeight = 600;
-            // const screenWidth = window.screen.width;
-            // const screenHeight = window.screen.height;
-            // const left = Math.max(0, (screenWidth - windowWidth) / 2);
-            // const top = Math.max(0, (screenHeight - windowHeight) / 2);
-
-            // // Open a new window with the authorization URL
-            // const newWindow = window.open(durl, '_blank', `width=${windowWidth},height=${windowHeight},left=${left},top=${top},scrollbars=yes,resizable=yes`);
-
-            // // Focus the new window
-            // if (newWindow) {
-            //     newWindow.focus();
-            // }
-        
-            // window.setTimeout(function(){
-            //     console.log('this is location-->'+newWindow.location.href);
-            // },2000);
-        
         })
         .catch(error => {
             console.error('Error:', error);
@@ -806,36 +685,6 @@ export default class IntegrationDashborad extends NavigationMixin(LightningEleme
                         message : 'Page Under Construction',
                     });
     }
-
-    // *********************************************************
-    // @Method Name    : openChatBot & updateChatStatus
-    // @author         : Tirth Shah
-    // @description    : Method is used to open chatbot
-    // @param          :
-    // @return         : 
-    // ********************************************************
-
-    openChatBot(){
-        // if(this.startchat){
-        //     this.startchat = false;
-        //     const CHATPOPUP = this.template.querySelector('c-chat-bot');
-        //     CHATPOPUP.togglePopup();
-        //     console.log('chat bot called');
-        // }
-        // else{
-        //     console.log(this.startchat);
-        // }
-    }
-
-    updateChatStatus(event){
-        console.log(event.detail.message);
-        setTimeout(()=>{
-            this.startchat = event.detail.message
-        },1000)
-        console.log(this.startchat);
-    }
-
-    // ************Chatbot method End*******************
 
     closeCreateTemplate(event){
         this.ispopup = false
@@ -876,6 +725,5 @@ export default class IntegrationDashborad extends NavigationMixin(LightningEleme
             console.log('4');
             this.handleOneDriveAuthorization();
         } 
-        
     }
 }

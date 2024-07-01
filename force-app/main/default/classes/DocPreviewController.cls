@@ -15,29 +15,38 @@ public with sharing class DocPreviewController {
     public DocPreviewController() {
     }
 
-    public  void constructor() {
-        paraData = String.escapeSingleQuotes(ApexPages.currentPage().getParameters().get('paraData'));
-        Map<String, Object> rawData = (Map<String, Object>)JSON.deserializeUntyped(paraData);
-
-        usedFrom = (String)rawData.get('usedFrom');
-        
-        String templateId = (String)rawData.get('templateId');
-        String recordId = (String)rawData.get('recordId');
-        String objectApiName = (String)rawData.get('Object_API_Name__c');
-
-        if(usedFrom == 'Simple Template'){
-            Map<String, String> returnValue = KeyMappingController.mappingFieldDataVF(templateId,recordId, objectApiName);
+    public void constructor() {
+        try {
             
-            displayText = returnValue.get('modifiedHTML');
+            if(ApexPages.currentPage().getParameters().get('paraData') != null){
+                paraData = String.escapeSingleQuotes(ApexPages.currentPage().getParameters().get('paraData'));
+            }
+            Map<String, Object> rawData = (Map<String, Object>)JSON.deserializeUntyped(paraData);
+    
+            System.debug('paraData : ' + paraData);
+    
+            usedFrom = (String)rawData.get('usedFrom');
             
-            Template_Page__c pageConfigs = (Template_Page__c) JSON.deserialize(returnValue.get('pageConfigs'), Template_Page__c.class);
-            pageMargins = pageConfigs.Page_Margin__c;
-            pageConfigUnit = pageConfigs.unit_of_page_configs__c;
-            pageOrientation = pageConfigs.Page_Orientation__c;
-            pageSize = pageConfigs.Page_Size__c;
-        }
-        else if(usedFrom == 'Google Doc Template'){
-            docPDFBase64 = EncodingUtil.base64Encode(GoogleDocPreview.doPreview(templateId, recordId,objectApiName));
+            String templateId = (String)rawData.get('templateId');
+            String recordId = (String)rawData.get('recordId');
+            String objectApiName = (String)rawData.get('Object_API_Name__c');
+    
+            if(usedFrom == 'Simple Template'){
+                Map<String, String> returnValue = DataMappingController.mappingFieldDataVF(templateId,recordId, objectApiName);
+                
+                displayText = returnValue.get('modifiedHTML');
+                
+                Template_Page__c pageConfigs = (Template_Page__c) JSON.deserialize(returnValue.get('pageConfigs'), Template_Page__c.class);
+                pageMargins = pageConfigs.Page_Margin__c;
+                pageConfigUnit = pageConfigs.unit_of_page_configs__c;
+                pageOrientation = pageConfigs.Page_Orientation__c;
+                pageSize = pageConfigs.Page_Size__c;
+            }
+            else if(usedFrom == 'Google Doc Template'){
+                // docPDFBase64 = EncodingUtil.base64Encode(GoogleDocPreview.doPreview(templateId, recordId,objectApiName));
+            }
+        } catch (Exception e) {
+            
         }
     }
 }

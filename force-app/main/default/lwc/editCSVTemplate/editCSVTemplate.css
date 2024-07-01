@@ -106,12 +106,20 @@ c-spinner{
     background-image: url(/resource/homePageImgs/HomBg.png);
     background-size: cover;
     background-repeat: no-repeat;
+
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start
 }
 
 .main-flex-div{
     display: flex;
     flex-direction: row;
-    height: calc(100% - 5rem);
+    /* height: calc(100% - 5rem); */
+
+    flex-grow: 1;
+    overflow: hidden;
 }
 
 /* .header{
@@ -226,7 +234,15 @@ c-spinner{
 .main-fields-div{
     width: 40%;
     padding: 0 1.25rem;
-    height: calc( 100% - 2rem );
+    /* height: calc( 100% - 2rem ); */
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.main-fields-div .title-div{
+    width: -webkit-fill-available;
+    margin-inline: 1.25rem;
 }
 
 .selected-count{
@@ -245,17 +261,23 @@ c-spinner{
 
 .main-config-div{
     width: 60%;
-    height: calc( 100% - 4rem );
+    /* height: calc( 100% - 4rem ); */
+    height: 100%;
     overflow-y: scroll;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .fields-div{
-    min-width: 100%;
+    /* min-width: 100%; */
     display: flex;
     flex-direction: column;
     justify-content: start;
-    height: 100%;
-    padding-top: 1rem;
+    /* height: 100%; */
+    flex-grow: 1;
+    padding: 1rem 1.25rem;
+    overflow: scroll;
 }
 
 .labels{
@@ -422,6 +444,7 @@ li:hover{
     font-size: 1.1rem;
     color: white;
     user-select: none;
+    /* margin-inline: 1.25rem; */
 }
 
 .title-div button{
@@ -444,18 +467,23 @@ li:hover{
 }
 
 .btn-div{
-    position: absolute;
-    width: 60%;
-    bottom: 1.25rem;
+    position: sticky;
+    width: 100%;
+    bottom: -1px;
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
     gap: 2.5rem;
+    background: white;
+    padding: 0.5rem 0rem;
+    z-index: 100;
+    flex-grow: 1;
 }
 
 .basic-details-btn-div{
-    width: calc( 100% - 2rem );
+    position: static;
+    width: 100%;
 }
 
 .save-button, .cancel-button, .reset-button, .validate-button{
@@ -463,13 +491,16 @@ li:hover{
     justify-content: center;
     font-size: 1rem;
     background-color: #00AEFF;
-    width: 9.375rem;
+    min-width: 9.375rem;
+    width: fit-content;
     height: 2.5rem;
     border-radius: 0.5rem;
     border: none;
     align-items: center;
     color: white;
     user-select: none;
+    gap: 0.5rem;
+    padding-inline: 1rem;
 }
 button:hover{
     background-color: #008eed;
@@ -842,9 +873,12 @@ button:hover{
 
 .basic-main-div{
     display: flex;
+    flex-grow: 1;
+    width: 100%;
+    overflow: scroll;
     margin: 0.625rem auto;
     justify-content: flex-start;
-    align-items: center;
+    align-items: flex-start;
     gap: 1.25rem;
     background-color: #d5ebff;
     padding: 1rem;
@@ -899,6 +933,12 @@ button:hover{
 .error-in-value-input{
     border-radius: 8px;
     border: 1px red solid;
+}
+
+.basic-detail-div{
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 1.5rem);
 }
 
 

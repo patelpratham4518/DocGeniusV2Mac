@@ -32,6 +32,7 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
     @track isClose = false;
     @track isTemplateUpdate = false;
     @track isCancelTemplate = false;
+    @track isReset = false;
 
 
     //-=-=- To run a function only once, when we want in rendered callback -=-=-
@@ -50,6 +51,41 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
     @track selectedFields = [];
     @track toAddSelected = [];
     @track toRemoveSelected = [];
+
+    // ===== ===== ===== ===== ===== CHANGES TO USED AS CHILD OBJECT SELECTION -- START -- ==== ===== =====
+
+    _isChild;
+    @api get isChild() { return this._isChild};
+    set isChild(value){ this._isChild = (value == 'true' || value == true) ? true : false}
+
+    get isTabSection(){
+        return !this.isChild ? true : false;
+    }
+
+    get loadFlexDivStyle(){
+        return this.isChild ? 'height : 100% !important' : '';
+    }
+
+    get selectFieldLabel(){
+        return this.isChild ? 'Select Fields to Add in Table' : 'Select Fields';
+    }
+
+    get filterLabel(){
+        return this.isChild ? 'Apply Filter on Record\'s Field' : 'Apply Filter';
+    }
+
+    get orderByLabel(){
+        return this.isChild ? 'Select Ordering of Records' : 'Order By';
+    }
+
+    get limitLabel(){
+        return this.isChild ? 'Set Maximum Number of Row(Record) to Add in Table' : 'Limit';
+    }
+
+    get saveBtnLabel(){
+        return this.isChild ? 'Generate Table' : 'Save'
+    }
+    // ===== ===== ===== ===== ===== CHANGES TO USED AS CHILD OBJECT SELECTION -- END ---- ==== ===== =====
 
     //-=-=- Filter/Sort/Logic Selection -=-=-
     separatedData = '';
@@ -124,13 +160,25 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
 
 
     //-=-=- To Hold all previous value -=-=-
-    @track existingFields;
-    @track existingFilters;
-    @track existingSorts;
+    @track existingFields = [];
+    @track existingFilters = [{
+        fieldName: '',
+        operator: '',
+        value: '',
+    }];
+    @track existingSorts = [{
+        field: '',
+        order: ''
+    }];
     @track existingLimit= this.limit;
     @track existingLogic= this.selectedLogic;
     @track existingCustomLogicString=this.customLogicString;
+
+
+    //-=-=- to reset the sections
+    @track resetSection;
     
+
     get updatedAllListViews(){
         let searchedListViews = this.allListViews.filter(lv => lv.label.toUpperCase().includes(this.listViewSearchKey.toUpperCase()));
         searchedListViews.length <1 ? this.noListViewFound = true : this.noListViewFound = false;
@@ -221,52 +269,73 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
 
     isDataUpdated(old, updated, obj) {
         try{
+
             if(old.length != updated.length){
+                console.log('Length is not same', old.length , updated.length);
                 return true;
             }else if(obj=='fields'){
                 for(let i=0; i<old.length; i++){
                     if(old[i].fieldName != updated[i].fieldName || old[i].apiName != updated[i].apiName){
+                        console.log('Something is updated in fields');
                         return true;
                     }
                 }
+                console.log('Nothing updated in fields');
                 return false;
             }else if(obj=='filters'){
                 for(let i=0; i<old.length; i++){
-                    if(old[i].fieldName != updated[i].fieldName || old[i].operator != updated[i].operator || old[i].value != updated[i].value){
+                    if(old[i].fieldName != updated[i].fieldName || old[i].operator != updated[i].operator || JSON.stringify(old[i].value) != JSON.stringify(updated[i].value)){
+                        console.log('Something is updated in filters');
                         return true;
                     }
                 }
+                console.log('Nothing updated in filters');
                 return false;
             }else if(obj=='sorts'){
                 for(let i=0; i<old.length; i++){
                     if(old[i].field != updated[i].field || old[i].order != updated[i].order){
+                        console.log('Something is updated in sorts');
                         return true;
                     }
                 }
+                console.log('Nothing updated in sorts');
                 return false;
             }
         }catch(e){
-            console.log('Error Comparing ', e.stack);
+            console.log('Error in isDataUpdated ', e.message);
         }
       }
 
     get isEditDisabled(){
-        if( this.isDataUpdated(this.existingFields, this.selectedFields, 'fields') || this.isDataUpdated(this.existingFilters, this.filters, 'filters') || this.isDataUpdated(this.existingSorts, this.sorts, 'sorts') || this.existingLogic!= this.selectedLogic || this.existingCustomLogicString != this.customLogicString || this.existingLimit!= this.limit){
-            return false;
+        if(!this.isChild){
+            if( this.isDataUpdated(this.existingFields, this.selectedFields, 'fields') || this.isDataUpdated(this.existingFilters, this.filters, 'filters') || this.isDataUpdated(this.existingSorts, this.sorts, 'sorts') || this.existingLogic!= this.selectedLogic || this.existingCustomLogicString != this.customLogicString || this.existingLimit!= this.limit){
+                return false;
+            }
+            return true;
         }
-        return true;
+        return false;
+    }
+
+    promises = [];
+    _resolvedPromise = 0;
+    get resolvedPromise(){ return this._resolvedPromise;}
+    set resolvedPromise(value){
+        (this.promises.length && value == this.promises.length) && (this.showSpinner = false);
+        this._resolvedPromise = value;
     }
 
     connectedCallback() {
         try {
             this.showSpinner = true;
-            // console.log('Object Name: ' + this.objectName + ' && TemplateID: ' + this.templateId);
+            this.limit = this.isChild ? this.childMaxLimit : 1000000;
+            this.existingLimit = this.limit;
+            // // console.log('Object Name: ' + this.objectName + ' && TemplateID: ' + this.templateId);
     
-            // console.log('IsNew: ' + this.isNew);
-            this.fetchTemplateDetails();
-            this.fetchListViews();
-            this.fetchFields();
-            this.fetchTemplateFieldsData();
+            // // console.log('IsNew: ' + this.isNew);
+            !this.isChild && this.promises.push(this.fetchTemplateDetails());
+            !this.isChild && this.promises.push(this.fetchListViews());
+            this.promises.push(this.fetchFields());
+            !this.isChild && this.promises.push(this.fetchTemplateFieldsData());
         } catch (e) {
             console.error('Error in connectedCallback:', e.stack);
         }
@@ -280,6 +349,8 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
             // await this.fetchListViews();
         } catch (error) {
             this.handleError('Error fetching details from template:', error.stack);
+        } finally{
+            this.resolvedPromise++;
         }
     }
     
@@ -293,6 +364,8 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
             // await this.fetchFields();
         } catch (err) {
             this.handleError('Error fetching list views:', err);
+        }finally{
+            this.resolvedPromise++;
         }
     }
     
@@ -324,7 +397,8 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
     
     async fetchFields(){
         try {
-            getFieldMappingKeys({sourceObjectAPI : this.objectName})
+            var getParents = !this.isChild      // if isChild object is true dont get parent objects
+            getFieldMappingKeys({sourceObjectAPI : this.objectName, getParentFields : getParents})
             .then(result => {
                 // console.log('getFieldMappingKeys result  : ', result);
                 if(result.isSuccess){
@@ -372,6 +446,8 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
         } catch (error) {
             console.log('error in templateBuilder > getFieldMappingKeys ', error.stack);
             
+        }finally{
+            this.resolvedPromise++;
         }
     }
 
@@ -424,9 +500,10 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
                     this.existingFields = [...this.selectedFields];
                 }
             }
-            this.showSpinner = false;
         } catch (err) {
             this.handleError('Error fetching template field data values:', err);
+        }finally{
+            this.resolvedPromise++;
         }
     }
     
@@ -911,8 +988,11 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
                 this.sorts[0].field = '';
                 this.sorts[0].order = '';
                 this.template.querySelectorAll('.sort-index-div')[0].classList.remove('error-in-row');
-                this.template.querySelectorAll('.asc-btn')[index].classList.remove('selected-sort-order');
-                this.template.querySelectorAll('.desc-btn')[index].classList.remove('selected-sort-order');
+                this.template.querySelectorAll('.asc-btn')[0].classList.remove('selected-sort-order');
+                this.template.querySelectorAll('.desc-btn')[0].classList.remove('selected-sort-order');
+                this.template.querySelectorAll('.sort-field-select').forEach( ele => {
+                    ele.classList.remove('error-in-custom-combobox');
+                });
             }
         }catch(e){
             console.log('Error in removing the sort ', e.stack);
@@ -930,13 +1010,13 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
                 selectedSortFields.push(sort.field);
                 // console.log('Sort Selected Fields :: ' + sort.field);
             }
-            if(!event.detail[0]){
+            if(!event.detail[0] && this.sorts.length > 1){
                 ascBtn.classList.remove('selected-sort-order');
                 descBtn.classList.remove('selected-sort-order');
                 this.sorts[index].field = '';
                 this.sorts[index].order = '';
                 this.template.querySelectorAll('.sort-field-select')[index].classList.add('error-in-custom-combobox');
-                // console.log('removed the order', this.sorts[index]);
+                console.log('removed the order', this.sorts[index]);
                 return;
             }
             this.template.querySelectorAll('.sort-field-select')[index].classList.remove('error-in-custom-combobox');
@@ -1551,8 +1631,8 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
         try{
             this.limit = event.target.value;
             const limitInput = this.template.querySelector('.input-limit');
-            // console.log('Limit: ' + parseInt(this.limit));
-            (this.limit<1 || this.limit>1000000) ? 
+            var maxLimit = this.isChild ? this.childMaxLimit : 1000000
+            (this.limit<1 || this.limit>maxLimit) ? 
             limitInput.classList.add('error-in-input') :
             limitInput.classList.remove('error-in-input');
         }catch(e){
@@ -1563,7 +1643,9 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
     handleLimitToggleChange(event){
         // console.log('Is Checked ::::::::::: ' , event.target.checked);
         this.showLimitInput = event.target.checked;
-        this.showLimitInput ? this.limit = 50000 : this.limit = 1000000;
+        var maxLimit = this.isChild ? this.childMaxLimit : 1000000;
+        var shownLimit = this.isChild ? this.childMaxLimit : 50000;
+        this.limit = this.showLimitInput ? shownLimit : maxLimit;
     }
     generateFilterString() {
         try{
@@ -1928,11 +2010,13 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
             if(this.showLimitInput){
                 const limitInput = this.template.querySelector('.input-limit');
                 limitInput.classList.remove('error-in-input');
-                if(this.limit <1 || this.limit > 1000000){
+                var maxLimit = this.isChild ? this.childMaxLimit : 1000000;
+                if(this.limit <1 || this.limit > maxLimit){
                         // console.log('validated Limit');
                         // invalidData = true;
                         if(!foundError){
-                            invalidData = {type: 'error', message: 'Oops! You entered wrong limit!', description:'Please enter a limit between 0 and 1000000!', duration:5000};
+                            var maxLImit = this.isChild ? this.childMaxLimit : 1000000;
+                            invalidData = {type: 'error', message: 'Oops! You entered wrong limit!', description:'Please enter a limit between 0 and '+maxLImit, duration:5000};
                             foundError = true;
                         }
                         // this.showToast('error', 'Oops! You entered wrong limit!', 'Please enter a limit between 0 and 50000!', 5000);
@@ -2032,21 +2116,27 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
     @return         : (Nothing will be returned)
     ********************************************************
     */
-                        saveTemplateFields({allFields: fields , templateId : this.templateId, query: this.generatedQuery, filters : this.separatedData})
-                        .then(()=>{
-                            // console.log('Template Fields saved successfully');
-                            this.showToast('success', 'Yay! Everything worked!', 'The template fields were saved successfully', 5000);
-                            this.existingFields = JSON.parse(JSON.stringify(this.selectedFields));
-                            this.existingFilters = JSON.parse(JSON.stringify(this.filters));
-                            this.existingSorts = JSON.parse(JSON.stringify(this.sorts));
-                            this.existingLogic = this.selectedLogic;
-                            this.existingLimit = this.limit;
-                            this.existingCustomLogicString = this.customLogicString;
-                        })
-                        .catch(error=> {
-                            const eMessage = this.selectedFields ? 'Something went wrong, Please try again!!' : 'Please Select at least one field!';
-                            this.showToast('error', 'Oops! Something went wrong', eMessage, 5000);
-                        });
+                        if(this.isChild){
+                            this.showSpinner = false;
+                            this.dispatchEvent(new CustomEvent('save', {detail : {selectedFields: this.selectedFields , query: this.generatedQuery, generatedData : {fields : fields, filters :this.separatedDat }}}));
+                        }
+                        else{
+                            saveTemplateFields({allFields: fields , templateId : this.templateId, query: this.generatedQuery, filters : this.separatedData})
+                            .then(()=>{
+                                // console.log('Template Fields saved successfully');
+                                this.showToast('success', 'Yay! Everything worked!', 'The template fields were saved successfully', 5000);
+                                this.existingFields = JSON.parse(JSON.stringify(this.selectedFields));
+                                this.existingFilters = JSON.parse(JSON.stringify(this.filters));
+                                this.existingSorts = JSON.parse(JSON.stringify(this.sorts));
+                                this.existingLogic = this.selectedLogic;
+                                this.existingLimit = this.limit;
+                                this.existingCustomLogicString = this.customLogicString;
+                            })
+                            .catch(error=> {
+                                const eMessage = this.selectedFields ? 'Something went wrong, Please try again!!' : 'Please Select at least one field!';
+                                this.showToast('error', 'Oops! Something went wrong', eMessage, 5000);
+                            });
+                        }
                     // } catch (error) {
                     //     console.log('Error saving the template Fields :' + error.message);
                     //     this.showToast('error', 'Oops! Something went wrong!', 'There was error saving your template fields.', 5000)
@@ -2095,10 +2185,16 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
         try {
             // const closeModalEvent = new CustomEvent('closemodal');
             // this.dispatchEvent(closeModalEvent);
-            if(!this.isEditDisabled){
-                this.isClose = true;
-                this.showWarningPopup('warning', 'Are you sure, you want to close?', 'Your changes may not be saved.');
-                return;
+            if(this.isChild){
+                this.dispatchEvent(new CustomEvent('close'));
+            }
+            else{
+                if(!this.isEditDisabled){
+                    this.isClose = true;
+                    this.showWarningPopup('warning', 'Are you sure, you want to close?', 'Your changes may not be saved.');
+                    return;
+                }
+                this.navigateToComp(navigationComps.home);
             }
 
             // this.showSpinner = false;
@@ -2108,7 +2204,6 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
             //     title: 'Are you sure, you want to close?',
             //     message : 'Your changes may not be saved.'
             // });
-            this.navigateToComp(navigationComps.home);
         } catch (error) {
             console.log('Error handleClose :' + error.message);
         }
@@ -2125,6 +2220,8 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
                 this.handleUpdateTemplate();
             }else if(this.isCancelTemplate){
                 this.handleCancelChanges();
+            }else if(this.isReset){
+                this.handleResetSection();
             }
         }else{
             if(this.isListViewUpdate){
@@ -2135,42 +2232,55 @@ export default class EditCSVTemplate extends NavigationMixin(LightningElement) {
         this.isListViewUpdate = false;
         this.isTemplateUpdate = false;
         this.isCancelTemplate = false;
+        this.isReset = false;
     }
 
     handleReset(event){
         try{
-            let resetSection = event.target.dataset.name;
-            // console.log('Event name is :: ' , resetSection);
-            if(resetSection === "fields"){
-                this.selectedFields = [];
-            }else if(resetSection === "filters"){
-                this.filters = [];
-                this.addFilter();
-                this.removeFilter();
-                this.customLogicString = '';
-                this.isCustomLogic = false;
-                this.selectedLogic = 'AND';
-                this.template.querySelectorAll('.filter-field-select').forEach( ele => {
-                    ele.classList.remove('error-in-custom-combobox');
-                });
-            }else if(resetSection === "orders"){
-                this.sorts = [];
-                this.addSort();
-                this.template.querySelectorAll('.asc-btn')[0].classList.remove('selected-sort-order');
-                this.template.querySelectorAll('.desc-btn')[0].classList.remove('selected-sort-order');
-                this.template.querySelectorAll('.sort-field-select').forEach( ele => {
-                    ele.classList.remove('error-in-custom-combobox');
-                });
-                // this.template.querySelector('.sort-index-div').classList.remove('error-in-row');
-            }else if(resetSection === "limit"){
-                this.showLimitInput = false;
-                this.template.querySelector('.toggle-limit').checked = this.showLimitInput;
-                this.limit = 1000000;
+            this.resetSection = event.target.dataset.name; 
+            if((this.resetSection === "fields" && this.selectedFields.length>0) || (this.resetSection === "filters" && this.filters[0].fieldName) || (this.resetSection === "orders" && this.sorts[0].field) || (this.resetSection === "limit" && this.showLimitInput)){
+                this.isReset = true;
+                this.showWarningPopup('warning', 'Reset '+ this.resetSection + ' Section!', 'Are you sure you want to reset '+ this.resetSection + '?');
             }
+            
         }catch(e){
             console.log('Error in handleReset ::  ', e.stack);
         }
 
+    }
+
+    handleResetSection(){
+        if(this.resetSection === "fields"){
+            this.toRemoveSelected = [];
+            this.toRemoveSelected.push(...this.selectedFields);
+            this.handleLeft();
+        }else if(this.resetSection === "filters"){
+            this.filters = [];
+            this.addFilter();
+            this.removeFilter();
+            this.customLogicString = '';
+            this.isCustomLogic = false;
+            this.selectedLogic = 'AND';
+            this.template.querySelectorAll('.filter-field-select').forEach( ele => {
+                ele.classList.remove('error-in-custom-combobox');
+            });
+        }else if(this.resetSection === "orders"){
+            this.sorts = [];
+            this.addSort();
+            this.removeSort();
+            this.template.querySelectorAll('.asc-btn')[0].classList.remove('selected-sort-order');
+            this.template.querySelectorAll('.desc-btn')[0].classList.remove('selected-sort-order');
+            this.template.querySelectorAll('.sort-field-select').forEach( ele => {
+                ele.classList.remove('error-in-custom-combobox');
+            });
+            // this.template.querySelector('.sort-index-div').classList.remove('error-in-row');
+        }else if(this.resetSection === "limit"){
+            this.showLimitInput = false;
+            this.template.querySelector('.toggle-limit').checked = this.showLimitInput;
+            this.limit = this.isChild ? this.childMaxLimit : 1000000;
+        }
+
+        this.resetSection = '';
     }
 
     handleCustom(){

@@ -1,0 +1,79 @@
+.main-preview-div{
+    background-color: white;
+    width: 100%;
+    height: 100%;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    background-image: url(/resource/homePageImgs/HomBg.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.title-text {
+    width: 100%;
+    height: 2.5rem;
+    background: #04ADFE;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    color: white;
+    font-size: 1.25rem;
+    margin: 1rem 0;
+}
+
+.preview-container {
+    height: calc(100% - 4.5rem);
+    overflow-y: scroll;
+}
+
+.preview-container table {
+    background: #00aeff12;
+}
+
+.no-results{
+    height: 84%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.no-result-svg{
+    width: 50% !important;
+    height: 50% !important;
+}
+
+.buttons-div{
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem 0;
+    background: #d5ebff;
+    border-radius: 0.5rem;
+    gap: 2rem;
+    font-weight: 700;
+    margin: 1rem 0;
+}
+
+.control-btn, .back-btn{
+    display: flex;
+    gap: 0.5rem;
+    background-color: #00aeff;
+    color: white;
+    border-radius: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    width: 10.5rem;
+    height: 2.5rem;
+    cursor: pointer;
+}
+.control-btn:hover, .back-btn:hover{
+    background: #00a2ed;
+    transition: 0.2s;
+}

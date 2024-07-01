@@ -5,6 +5,7 @@ public with sharing class KeyMappingController {
     public static string tableIndexKey = '{{No.Index}}';
     public static string relatedObjKey = '{{#mappingKey}}';
     public static string generalFieldkeys = '{{Doc.mappingKey}}';
+    public static string mergeTemplatekeys = '{{Doc.Temp.tempId}}';
     public static string formattingKeys = '*formatKey*';
     public static List<string> imgTyes = new List<string>{'png','jpg','jpeg','gif','svg','avif','webp','heic','ico','jfif','jps','jpe', 'svg'};
 
@@ -17,6 +18,7 @@ public with sharing class KeyMappingController {
             list<MappingObjects> objWithFields = new list<MappingObjects>();
 
             Obj_Label_API objLabelAPI = new Obj_Label_API();
+            System.debug('sourceObjectAPI : '+ sourceObjectAPI);
             String sourceObjectName = Schema.getGlobalDescribe().get(sourceObjectAPI).getDescribe().getName();
             String sourceObjectLabel = Schema.getGlobalDescribe().get(sourceObjectAPI).getDescribe().getLabel();
             objLabelAPI.name = sourceObjectName;
@@ -306,7 +308,7 @@ public with sharing class KeyMappingController {
                     MappingFields tempKeys = new MappingFields();
                     tempKeys.label = temp.Template_Name__c;
                     tempKeys.name = temp.Id;
-                    tempKeys.key = generalFieldkeys.replace('mappingKey', 'Temp.'+ temp.Id +' '+ formattingKeys.replace('formatKey', temp.Template_Name__c));
+                    tempKeys.key = mergeTemplatekeys.replace('tempId', temp.Id +' '+ formattingKeys.replace('formatKey', temp.Template_Name__c));
                     fieldMappings.add(tempKeys);
                 }
                 mergeTemps.fieldMappings = fieldMappings;
@@ -410,7 +412,6 @@ public with sharing class KeyMappingController {
 
             return fieldMapping;
         } catch (Exception e) {
-            Log_Handler.store_Exception(e, 'TemplateBuilder_Controller', 'createMappingFieldInstance');
             system.debug('exception in createMappingFieldInstance : ' +  e.getMessage() +'\n'+ 'Line Number : ' + e.getLineNumber());
             return null;
         }

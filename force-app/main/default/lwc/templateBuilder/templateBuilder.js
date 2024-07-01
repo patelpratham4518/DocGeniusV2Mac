@@ -7,7 +7,7 @@ import docGeniusLogoSvg from "@salesforce/resourceUrl/docGeniusLogoSvg";
 import getTemplateData from '@salesforce/apex/TemplateBuilder_Controller.getTemplateData';
 import saveTemplateApex from '@salesforce/apex/TemplateBuilder_Controller.saveTemplateApex';
 import { initializeSummerNote } from './editorConf.js';
-import {navigationComps, nameSpace, pageFormats, unitMultiplier} from 'c/utilityProperties';
+import {navigationComps, nameSpace, pageFormats, unitMultiplier} from 'c/globalProperties';
 
 export default class TemplateBuilder extends NavigationMixin(LightningElement) {
 
@@ -66,25 +66,16 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
         ],
         unit : 'in',
     }
+
     @track pageConfigValues = {};
     currentPageWidth = 792;
     currentPageHeight = 1120;
 
-    @track toggleGenChildTablePopup = false;
-    @track childTableQuery;
-    @track selectedFieldList;
-    @track showIndex;
-    @track childTableData;
-    @track childRelationName;
-    @track childObjectLabel;
-    @track childObjAPI;
+    lastRelatedListTableCount = 0;
+    maxRelatedLIstTableLimit = 10;
 
    get setdocGeniusLogoSvg(){
     return docGeniusLogoSvg;
-   }
-
-   get noChildTable(){
-        return this.childTableQuery ? false : true;
    }
    
    get showTempDetail(){
@@ -315,7 +306,12 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
     }
 
     saveTemplateData(){
-        this.saveTemplateValue('save');
+        if(this.lastRelatedListTableCount <= this.maxRelatedLIstTableLimit){
+            this.saveTemplateValue('save');
+        }
+        else{
+            this.showMessagePopup('error', 'Warning !', `Related List Table Limit Exceeded. You Can Not Add More Then ${this.maxRelatedLIstTableLimit} Related List Tables.`);
+        }
     }
 
     saveTemplateValue(actionName){
@@ -389,7 +385,12 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
     }
 
     handleSaveNPreview(){
-        this.saveTemplateValue('preview');
+        if(this.lastRelatedListTableCount <= this.maxRelatedLIstTableLimit){
+            this.saveTemplateValue('preview');
+        }
+        else{
+            this.showMessagePopup('error', 'Warning !', `Related List Table Limit Exceeded. You Can Not Add More Then ${this.maxRelatedLIstTableLimit} Related List Tables.`);
+        }
     }
 
     vfPageLoaded(){
@@ -642,7 +643,6 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
     setEditorPageSize(){
         try {
             const contentEditorFrame = this.contentEditor.nextSibling;
-            const editorPage = contentEditorFrame.querySelector('.note-editable');
 
             var pageMarginsTop = this.pageConfigValues.Page_Margin__c.split(';')[0];
             var pageMarginsBottom = this.pageConfigValues.Page_Margin__c.split(';')[1];
@@ -656,11 +656,12 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
             this.currentPageWidth = (orientation == 'portrait' ? pageFormats[pageSize][0] : pageFormats[pageSize][1]) * 1.3334;
             this.currentPageHeight = (orientation == 'portrait' ? pageFormats[pageSize][1] : pageFormats[pageSize][0]) * 1.3334;
 
-            editorPage.style = `padding : ${pageMarginsTop}${unit} ${pageMarginsRight}${unit} ${pageMarginsBottom}${unit} ${pageMarginsLeft}${unit} !important;
-                                width : ${this.currentPageWidth}px;
-                                max-width : ${this.currentPageWidth}px;
-                                min-height : ${this.currentPageHeight}px;
-                                `;
+            contentEditorFrame.style.setProperty('--pageWidth', `${this.currentPageWidth}px`);
+            contentEditorFrame.style.setProperty('--pageHeight', `${this.currentPageHeight}px`);
+            contentEditorFrame.style.setProperty('--pageMarginTop', `${pageMarginsTop}${unit}`);
+            contentEditorFrame.style.setProperty('--pageMarginBottom', `${pageMarginsBottom}${unit}`);
+            contentEditorFrame.style.setProperty('--pageMarginLeft', `${pageMarginsLeft}${unit}`);
+            contentEditorFrame.style.setProperty('--pageMarginRight', `${pageMarginsRight}${unit}`);
 
             this.setEditorArea();
             this.setDummyPageSize();
@@ -684,15 +685,15 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                     // key Mapping container can not set in that place... So Toggle the container
                     fieldMappingContainer.classList.add('floatingMapping');                 // #fieldMapping...
                     this.template.querySelector('c-key-mapping-container').toggleMappingContainer(true);
-                    editorArea.style = `max-width : calc(100% - 2rem) !important; 
+                    editorArea && (editorArea.style = `max-width : calc(100% - 2rem) !important; 
                                         margin-right: 0% !important;
-                                        margin-inline: auto !important;`
+                                        margin-inline: auto !important;`)
                 }
                 else{
                     // Show field Mapping Container
                     fieldMappingContainer.classList.remove('floatingMapping');               // #fieldMapping...
                     this.template.querySelector('c-key-mapping-container').toggleMappingContainer(false);
-                    editorArea.style = '';
+                    editorArea && (editorArea.style = '');
                 }
             }
             else{
@@ -701,9 +702,9 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                 // Show Button ( << Insert Field Button) to Open Field Mapping...
                 this.template.querySelector('c-key-mapping-container').toggleMappingContainer(true);
                 // Set Editor Page CSS....
-                editorArea.style = `max-width : calc(100% - 2rem) !important; 
+                editorArea && (editorArea.style = `max-width : calc(100% - 2rem) !important; 
                                     margin-right: 0% !important;
-                                    margin-inline: auto !important;`;
+                                    margin-inline: auto !important;`);
             }
 
         } catch (error) {
@@ -712,7 +713,6 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
     }
 
     setDummyPageSize(){
-
         var pageMarginsTop = this.pageConfigValues.Page_Margin__c.split(';')[0];
         var pageMarginsBottom = this.pageConfigValues.Page_Margin__c.split(';')[1];
         var pageMarginsLeft = this.pageConfigValues.Page_Margin__c.split(';')[2];
@@ -728,166 +728,51 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
                             aspect-ratio : ${aspectRatio}`;
     }
 
-    // #Child Object Table Method....
     openGenChildTablePopup(event){
-        this.childRelationName = event.detail?.relationshipName;
-        this.childObjAPI = event.detail?.childObjAPI;
-        this.childObjectLabel = event.detail?.label;
-        this.toggleGenChildTablePopup = true;
+        const childObjectTableBuilder = this.template.querySelector('c-child-object-table-builder');
+        childObjectTableBuilder && childObjectTableBuilder.openPopup(event);
     }
 
-    // #Child Object Table Method....
     closeGenChildTable(){
-        this.childTableQuery =  null;
-        this.selectedFieldList = null;
-        this.childTableData = null;
-        this.showIndex = null;
-        this.toggleGenChildTablePopup = false;
+        const childObjectTableBuilder = this.template.querySelector('c-child-object-table-builder');
+        childObjectTableBuilder && childObjectTableBuilder.closePopup();
     }
 
-    // #Child Object Table Method....
-    handleChildTableInsert(event){
-        this.childTableQuery =  event.detail?.query;
-        this.selectedFieldList = event.detail?.selectedFields;
-        this.childTableData = event.target?.generatedData;
-        this.generateChildTable();
-    }
-
-    // #Child Object Table Method....
-    regenerateChildTable(event){
-        this.showIndex = event.target.checked
-        this.generateChildTable();
-    }
+    //  --- ---- ----- Related List (Child Table) calculation method --- ---- -----
+    calculateRelatedListTable(note){
+        try {
+            const keyMappingChildComp = this.template.querySelector('c-key-mapping-container ');
+            if(keyMappingChildComp){
+              const page = note.noteEditorFrame.querySelector('.note-editable');
+              var relatedListTables = page?.querySelectorAll(`[data-name="childRecords"]`);
     
-    // #Child Object Table Method....
-    generateChildTable(){
-        try {
-            var filters;
-            var limit;
-            if(this.childTableQuery.includes('WHERE')){
-                if(this.childTableQuery.includes('LIMIT')){
-                    const whereIndex  = this.childTableQuery.indexOf('WHERE') + 5;
-                    const limitIndex  = this.childTableQuery.indexOf('LIMIT') + 5;
-                    limit = this.childTableQuery.substring(limitIndex, this.childTableQuery.length).trim();
-                    filters = this.childTableQuery.substring(whereIndex, limitIndex - 5);
-                }
-                else {
-                    filters = this.childTableQuery.substring(whereIndex, this.childTableQuery.length);
-                }
-            }
-            else if(this.childTableQuery.includes('LIMIT')){
-                const limitIndex  = this.childTableQuery.indexOf('LIMIT') + 5;
-                limit = this.childTableQuery.substring(limitIndex, this.childTableQuery.length).trim();
-            }
-
-            console.log('filters : ', filters);
-            console.log('limit : ', limit);
-            
-            if(this.selectedFieldList && this.selectedFieldList.length){
-                const childTBody = this.template.querySelector('[data-name="childTBody"]');
-                childTBody.innerHTML = '';
-
-                const tdCSS = `   border: 1px solid #808080;
-                                    padding: 5px 3px;
-                                    overflow: hidden;
-                                    text-align : center;
-                `
-
-                const labelRow = document.createElement('tr');
-                const keyRow = document.createElement('tr');
-                keyRow.setAttribute('data-name', "keyRow");
-                const infoRow = document.createElement('tr');
-                infoRow.setAttribute('data-name', "infoRow");
-
-
-                if(this.showIndex){
-                    const labelTd = document.createElement('td');
-                    labelTd.style = tdCSS;
-                    labelTd.textContent = 'No.';
-                    const keyTd = document.createElement('td');
-                    keyTd.style = tdCSS;
-                    keyTd.textContent = '{{No.Index}}';
-                    labelRow.appendChild(labelTd);
-                    keyRow.appendChild(keyTd);
-                }
-
-                const selectedFieldList = this.selectedFieldList;
-                for(var i = 0; i < selectedFieldList.length; i++){
-                    let fieldInfo = selectedFieldList[i];
-                    const labelTd = document.createElement('td');
-                    labelTd.style = tdCSS;
-                    const keyTd = document.createElement('td');
-                    keyTd.style = tdCSS;
-                    labelTd.textContent = fieldInfo.fieldName;
-                    keyTd.textContent = `{{!${fieldInfo.apiName}}}`;
-                    labelRow.appendChild(labelTd);
-                    keyRow.appendChild(keyTd);
-                }
-
-                const infoTd = document.createElement('td');
-                infoTd.setAttribute('colspan', this.showIndex ? (selectedFieldList.length + 1) : selectedFieldList.length);
-                infoTd.style = `position : relative; padding: 5px 3px; border: 1px solid rgb(203, 203, 203) !important; color: rgb(76, 76, 76) !important; text-align: center; overflow : hidden;`;
-                infoTd.innerText = `Object: ${this.childObjectLabel},
-                                    $objApi:${this.childObjAPI}$, $childRelation:${this.childRelationName}$, $limit:${limit ? limit : '20'}$, ${filters ? `, $filter:${filters}$` : ``}
-                                    `;
-
-                // const overlay = document.createElement('div');
-                // overlay.setAttribute('data-name', "overlay");
-                // overlay.style = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0); z-index: 9;`;
-                // infoTd.appendChild(overlay);
-                // infoRow.appendChild(infoTd);
-
-                childTBody.appendChild(labelRow);
-                childTBody.appendChild(keyRow);
-                childTBody.appendChild(infoRow);
+              var validTableCount = 0;
+              relatedListTables?.forEach(ele => {
+                if(ele.querySelector('[data-name="keyRow"]') &&
+                  ele.querySelector('[data-name="infoRow"]')){
+                    validTableCount ++;
+                  }
+              })
+    
+              if(validTableCount >= this.maxRelatedLIstTableLimit){
+                // When Limit Exceed
+                keyMappingChildComp.relatedListTableLimitExceed(true);
+              }
+              else if(validTableCount != this.lastRelatedListTableCount){
+                keyMappingChildComp.relatedListTableLimitExceed(false);
+              }
+              this.lastRelatedListTableCount = validTableCount;
+              console.log('lastRelatedListTableCount : ', this.lastRelatedListTableCount);
             }
         } catch (error) {
-            console.log('error in generateChildTable : ', error.stack);
+          console.log('error in calculateRelatedListTable : ', error.stack);
         }
     }
-
-    // #Child Object Table Method....
-    copyChildTable(event){
-        try {
-            const table = document.createElement('table');
-            table.setAttribute('data-name', "childRecords");            
-
-            const childTBody = this.template.querySelector('[data-name="childTBody"]');
-
-            let tableBody = null;
-            childTBody && (tableBody = childTBody.cloneNode(true));
-            tableBody && tableBody.removeAttribute('data-name');
-            tableBody && tableBody.classList.remove('childTBody');
-
-            table.appendChild(tableBody);
-            document.body.appendChild(table);
-
-            navigator.clipboard.write([
-                new ClipboardItem({
-                    'text/html': new Blob([table.outerHTML], { type: 'text/html' }),
-                    // 'text/plain': new Blob([textarea.value], { type: 'text/plain' })
-                })
-            ]);
-
-            // Show animation on copy...
-            const copyBtn = event.currentTarget;
-            copyBtn.classList.add('copied');
-            setTimeout(() => {
-                copyBtn.classList.remove('copied');
-            }, 1001);
-
-            document.body.removeChild(table); 
-
-        } catch (error) {
-            console.log('error in copyChildTable : ', error.stack);
-        }
-    }
-
 
     // ====== ======= ======== ======= ======= ====== GENERIC Method ====== ======= ======== ======= ======= ======
      // Generic Method to test Message Popup and Toast
         showMessagePopup(Status, Title, Message){
-            const messageContainer = document.querySelector('c-message-popup')
+            const messageContainer = this.template.querySelector('c-message-popup')
             if(messageContainer){
                 messageContainer.showMessagePopup({
                     status: Status,
@@ -898,7 +783,7 @@ export default class TemplateBuilder extends NavigationMixin(LightningElement) {
         }
 
         showMessageToast(Status, Title, Message, Duration){
-            const messageContainer = document.querySelector('c-message-popup')
+            const messageContainer = this.template.querySelector('c-message-popup')
             if(messageContainer){
                 messageContainer.showMessageToast({
                     status: Status,

@@ -93,7 +93,7 @@
         </template>
         <!-- <div class="header"> -->
         <!-- <h1 class=" heading slds-align_absolute-center slds-text-heading_large"> <b> CSV Template Builder </b></h1> -->
-        <div class="tabSection">
+        <div lwc:if={isTabSection} class="tabSection">
             <div class="tabSection_sub">
                 <div class="homeBtn" onclick={handleClose}>
                     <svg viewBox="0 0 24 24">
@@ -129,7 +129,7 @@
 
         <div class="main-flex-div" if:true={showEditTemplateTab}>
             <div class="main-fields-div">
-                <div class="title-div">Fields Select<button data-name="fields" onclick={handleReset}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4C9.25144 4 6.82508 5.38626 5.38443 7.5H8V9.5H2V3.5H4V5.99936C5.82381 3.57166 8.72764 2 12 2C17.5228 2 22 6.47715 22 12H20C20 7.58172 16.4183 4 12 4ZM4 12C4 16.4183 7.58172 20 12 20C14.7486 20 17.1749 18.6137 18.6156 16.5H16V14.5H22V20.5H20V18.0006C18.1762 20.4283 15.2724 22 12 22C6.47715 22 2 17.5228 2 12H4Z"></path></svg>Reset</button> </div>
+                <div class="title-div">{selectFieldLabel}<button data-name="fields" onclick={handleReset}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4C9.25144 4 6.82508 5.38626 5.38443 7.5H8V9.5H2V3.5H4V5.99936C5.82381 3.57166 8.72764 2 12 2C17.5228 2 22 6.47715 22 12H20C20 7.58172 16.4183 4 12 4ZM4 12C4 16.4183 7.58172 20 12 20C14.7486 20 17.1749 18.6137 18.6156 16.5H16V14.5H22V20.5H20V18.0006C18.1762 20.4283 15.2724 22 12 22C6.47715 22 2 17.5228 2 12H4Z"></path></svg>Reset</button> </div>
                 <!-- <label class="bold-text">Select the fields you want in your template</label> -->
                 <div class="fields-div">
                     <div class="available-div">
@@ -178,7 +178,7 @@
                     </div>
     
                     <div class="selected-div">
-                        <div class="labels">Selected fields</div>
+                        <div class="labels">{filterLabel}</div>
                         <div class="selection-include-btn-div">
                             <div class="selection-div selection-div-full-height">
                                 <ul>
@@ -341,7 +341,7 @@
                     </div>
                 </div>
                 <div class="sort-div">
-                    <div class="title-div">Order By<button data-name="orders"  onclick={handleReset}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4C9.25144 4 6.82508 5.38626 5.38443 7.5H8V9.5H2V3.5H4V5.99936C5.82381 3.57166 8.72764 2 12 2C17.5228 2 22 6.47715 22 12H20C20 7.58172 16.4183 4 12 4ZM4 12C4 16.4183 7.58172 20 12 20C14.7486 20 17.1749 18.6137 18.6156 16.5H16V14.5H22V20.5H20V18.0006C18.1762 20.4283 15.2724 22 12 22C6.47715 22 2 17.5228 2 12H4Z"></path></svg>Reset</button> </div>
+                    <div class="title-div">{orderByLabel}<button data-name="orders"  onclick={handleReset}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4C9.25144 4 6.82508 5.38626 5.38443 7.5H8V9.5H2V3.5H4V5.99936C5.82381 3.57166 8.72764 2 12 2C17.5228 2 22 6.47715 22 12H20C20 7.58172 16.4183 4 12 4ZM4 12C4 16.4183 7.58172 20 12 20C14.7486 20 17.1749 18.6137 18.6156 16.5H16V14.5H22V20.5H20V18.0006C18.1762 20.4283 15.2724 22 12 22C6.47715 22 2 17.5228 2 12H4Z"></path></svg>Reset</button> </div>
                     <div class="all-sorts-rows">
                         <template for:each={adjustedSorts} for:item="sort" for:index="index">
                             <div key={sort} class="sort-row">
@@ -381,7 +381,7 @@
                     </div>
                 </div>
                 <div class="limit-main-div">
-                    <div class="title-div">Limit<button data-name="limit"  onclick={handleReset}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4C9.25144 4 6.82508 5.38626 5.38443 7.5H8V9.5H2V3.5H4V5.99936C5.82381 3.57166 8.72764 2 12 2C17.5228 2 22 6.47715 22 12H20C20 7.58172 16.4183 4 12 4ZM4 12C4 16.4183 7.58172 20 12 20C14.7486 20 17.1749 18.6137 18.6156 16.5H16V14.5H22V20.5H20V18.0006C18.1762 20.4283 15.2724 22 12 22C6.47715 22 2 17.5228 2 12H4Z"></path></svg>Reset</button> </div>
+                    <div class="title-div">{limitLabel}<button data-name="limit"  onclick={handleReset}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4C9.25144 4 6.82508 5.38626 5.38443 7.5H8V9.5H2V3.5H4V5.99936C5.82381 3.57166 8.72764 2 12 2C17.5228 2 22 6.47715 22 12H20C20 7.58172 16.4183 4 12 4ZM4 12C4 16.4183 7.58172 20 12 20C14.7486 20 17.1749 18.6137 18.6156 16.5H16V14.5H22V20.5H20V18.0006C18.1762 20.4283 15.2724 22 12 22C6.47715 22 2 17.5228 2 12H4Z"></path></svg>Reset</button> </div>
                     <div class="limit-div">
                         <div class="limit-toggle-div">
                             <label>Set records limit</label>
@@ -408,12 +408,21 @@
                     </div>
                 </div>
                 <div class="btn-div">
-                    <button class="cancel-button" onclick={handleClose}>Close</button>
+                    <button class="cancel-button" onclick={handleClose}>
+                        <svg width="20" height="20" fill="white" viewBox="0 0 520 520" lwc-1tsr6p0f0fe=""><g lwc-1tsr6p0f0fe=""><path d="M310 254l130-131c6-6 6-15 0-21l-20-21c-6-6-15-6-21 0L268 212a10 10 0 01-14 0L123 80c-6-6-15-6-21 0l-21 21c-6 6-6 15 0 21l131 131c4 4 4 10 0 14L80 399c-6 6-6 15 0 21l21 21c6 6 15 6 21 0l131-131a10 10 0 0114 0l131 131c6 6 15 6 21 0l21-21c6-6 6-15 0-21L310 268a10 10 0 010-14z" lwc-1tsr6p0f0fe=""></path></g></svg>
+                        Close
+                    </button>
                     <template if:true={isEditDisabled}>
-                        <button class="save-button disabled-button">Save</button>
+                        <button class="save-button disabled-button">
+                            <svg width="20" height="20" fill="white" viewBox="0 0 520 520" lwc-1tsr6p0f0fe=""><g lwc-1tsr6p0f0fe=""><path d="M371 40v136c0 10-8 19-19 19H139c-10 0-19-8-19-19V40H80a40 40 0 00-40 40v360a40 40 0 0040 40h360a40 40 0 0040-40V112l-72-72zm70 381c0 10-8 19-19 19H99c-10 0-19-8-19-19V254c0-10 8-19 19-19h323c10 0 19 8 19 19zM248 136c0 10 8 19 19 19h46c10 0 19-8 19-19V40h-83z" lwc-1tsr6p0f0fe=""></path></g></svg>
+                            {saveBtnLabel}
+                        </button>
                     </template>
                     <template if:false={isEditDisabled}>
-                        <button class="save-button" onclick={handleSave}>Save</button>
+                        <button class="save-button" onclick={handleSave}>
+                            <svg width="20" height="20" fill="white" viewBox="0 0 520 520" lwc-1tsr6p0f0fe=""><g lwc-1tsr6p0f0fe=""><path d="M371 40v136c0 10-8 19-19 19H139c-10 0-19-8-19-19V40H80a40 40 0 00-40 40v360a40 40 0 0040 40h360a40 40 0 0040-40V112l-72-72zm70 381c0 10-8 19-19 19H99c-10 0-19-8-19-19V254c0-10 8-19 19-19h323c10 0 19 8 19 19zM248 136c0 10 8 19 19 19h46c10 0 19-8 19-19V40h-83z" lwc-1tsr6p0f0fe=""></path></g></svg>
+                            {saveBtnLabel}
+                        </button>
                     </template>
                 </div>
             </div>
@@ -423,7 +432,6 @@
             <div class="title-div">Template Details</div>
             <div class="basic-main-div">
                 <div class="edit-detail-div">
-
                     <div class="tempToggle">
                         <template lwc:if={newTemplateData.Template_Status__c}>
                           <input class="checkBox checked" type="checkbox" data-status="checked" id={newTemplateData.Id} onchange={handleChangeStatus} style="display: none;" checked/>
@@ -517,13 +525,23 @@
                 </div>
             </div>
             <div class="btn-div basic-details-btn-div">
-                <button class="cancel-button" onclick={handleDetailsCancel}>Cancel</button>
+                <button class="cancel-button" onclick={handleClose}>
+                    <svg width="20" height="20" fill="white" viewBox="0 0 520 520" lwc-1tsr6p0f0fe=""><g lwc-1tsr6p0f0fe=""><path d="M310 254l130-131c6-6 6-15 0-21l-20-21c-6-6-15-6-21 0L268 212a10 10 0 01-14 0L123 80c-6-6-15-6-21 0l-21 21c-6 6-6 15 0 21l131 131c4 4 4 10 0 14L80 399c-6 6-6 15 0 21l21 21c6 6 15 6 21 0l131-131a10 10 0 0114 0l131 131c6 6 15 6 21 0l21-21c6-6 6-15 0-21L310 268a10 10 0 010-14z" lwc-1tsr6p0f0fe=""></path></g></svg>
+                    Close
+                </button>
+                <button class="cancel-button" onclick={handleDetailsCancel}>
+                    <svg width="20" height="20" fill="white" viewBox="0 0 24 24" lwc-1tsr6p0f0fe=""><path d="M5.82843 6.99955L8.36396 9.53509L6.94975 10.9493L2 5.99955L6.94975 1.0498L8.36396 2.46402L5.82843 4.99955H13C17.4183 4.99955 21 8.58127 21 12.9996C21 17.4178 17.4183 20.9996 13 20.9996H4V18.9996H13C16.3137 18.9996 19 16.3133 19 12.9996C19 9.68584 16.3137 6.99955 13 6.99955H5.82843Z" lwc-1tsr6p0f0fe=""></path></svg>
+                    Cancel</button>
                 <template if:true={isDisabled}>
                     <!-- <button class="cancel-button disabled-button">Cancel</button> -->
-                    <button class="save-button disabled-button">Update</button>
+                    <button class="save-button disabled-button">
+                        <svg width="20" height="20" fill="white" viewBox="0 0 520 520" lwc-1tsr6p0f0fe=""><g lwc-1tsr6p0f0fe=""><path d="M371 40v136c0 10-8 19-19 19H139c-10 0-19-8-19-19V40H80a40 40 0 00-40 40v360a40 40 0 0040 40h360a40 40 0 0040-40V112l-72-72zm70 381c0 10-8 19-19 19H99c-10 0-19-8-19-19V254c0-10 8-19 19-19h323c10 0 19 8 19 19zM248 136c0 10 8 19 19 19h46c10 0 19-8 19-19V40h-83z" lwc-1tsr6p0f0fe=""></path></g></svg>
+                        Update</button>
                 </template>
                 <template if:false={isDisabled}>
-                    <button class="save-button" onclick={handleDetailsSave}>Update</button>
+                    <button class="save-button" onclick={handleDetailsSave}>
+                        <svg width="20" height="20" fill="white" viewBox="0 0 520 520" lwc-1tsr6p0f0fe=""><g lwc-1tsr6p0f0fe=""><path d="M371 40v136c0 10-8 19-19 19H139c-10 0-19-8-19-19V40H80a40 40 0 00-40 40v360a40 40 0 0040 40h360a40 40 0 0040-40V112l-72-72zm70 381c0 10-8 19-19 19H99c-10 0-19-8-19-19V254c0-10 8-19 19-19h323c10 0 19 8 19 19zM248 136c0 10 8 19 19 19h46c10 0 19-8 19-19V40h-83z" lwc-1tsr6p0f0fe=""></path></g></svg>
+                        Update</button>
                 </template>
             </div>
         </div>

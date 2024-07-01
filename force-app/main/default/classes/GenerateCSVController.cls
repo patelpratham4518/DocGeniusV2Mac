@@ -21,9 +21,27 @@ public with sharing class GenerateCSVController {
 
 /*
 *********************************************************
-@description    : Method is used to fetch the Query and count of records from the query
-@param query    : {String} - templateId of the selected template
-@return         : {String} - containing fields, Query and the count of records
+@description    : Method is used to get the single template related data like, template name, object name, description of the given template Id
+@param ---
+@return         : List<Template__c> -list of templates of CSV type
+********************************************************
+*/
+@AuraEnabled
+public static List<Template__c> getSingleTemplateData(String templateId){
+    List<Template__c> templates = new List<Template__c>();
+    try {
+        templates = [SELECT Id,Template_Name__c, Name, Object_API_Name__c, Description__c FROM Template__c WHERE Id=:templateId];
+    } catch (Exception e) {
+        Log_Handler.store_Exception(e, 'GenerateCSVController', 'getSingleTemplateData');
+    }
+    return templates;
+}
+
+/*
+*********************************************************
+@description      : Method is used to fetch the Query and count of records from the query
+@param templateId : {String} - templateId of the selected template
+@return           : {String} - containing fields, Query and the count of records
 ********************************************************
 */
     @AuraEnabled

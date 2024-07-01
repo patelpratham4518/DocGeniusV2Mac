@@ -1,40 +1,4 @@
 public with sharing class ChatBotController {
-    public ChatBotController() {
-    }
-
-    private static final String FAQ_JSON = '{' +
-        '"question": "Integration",' +
-        '"answer": "Refer Userguide",' +
-        '"subQuestions": [' +
-            '{' +
-                '"question": "Dropbox",' +
-                '"answer": "solution Found",' +
-                '"subQuestions": [' +
-                    '{' +
-                        '"question": "Client-id & client-secret",' +
-                        '"answer": "Answer 1"' +
-                    '},' +
-                    '{' +
-                        '"question": "Redirect uri",' +
-                        '"answer": "Answer 2"' +
-                    '},' +
-                    '{' +
-                        '"question": "Unable to Integrate",' +
-                        '"answer": "Answer 3"' +
-                    '},' +
-                    '{' +
-                        '"question": "Remove Integration",' +
-                        '"answer": "Answer 4"' +
-                    '}' +
-                ']' +
-            '},' +
-            '{' +
-                '"question": "OtherService",' +
-                '"answer": "other solution",' +
-                '"subQuestions": []' +
-            '}' +
-        ']' +
-    '}';
 
     private static final String FAQ_JSON_1 = '[{' +
     '"question": "Integration",' +
@@ -42,89 +6,89 @@ public with sharing class ChatBotController {
     '"subQuestions": [' +
         '{' +
             '"question": "Dropbox",' +
-            '"answer": "solution Found",' +
+            '"answer": "No solution Found",' +
             '"subQuestions": [' +
                 '{' +
                     '"question": "Client-id & client-secret",' +
-                    '"answer": "Answer 1"' +
+                    '"answer": "You can find client-id[Key] and client-secret[Secret] from its dropbox developer console. You can find steps in userguide. "' +
                 '},' +
                 '{' +
                     '"question": "Redirect uri",' +
-                    '"answer": "Answer 2"' +
+                    '"answer": "Redirect uri mismatch error can occur due to not entering redirect url in dropbox developer console. You can find all steps in userguide."' +
                 '},' +
                 '{' +
                     '"question": "Unable to Integrate",' +
-                    '"answer": "Answer 3"' +
+                    '"answer": "Make sure all permissions were given while integrating and scopes are correct in dropbox developer console. Also the account you want to integrate should be logged in into your device in dropbox."' +
                 '},' +
                 '{' +
                     '"question": "Remove Integration",' +
-                    '"answer": "Answer 4"' +
+                    '"answer": "Just by clicking unauthorize symbol next to the active integration you can easily remove integration and integrate again. "' +
                 '}' +
             ']' +
         '},' +
         '{' +
             '"question": "OneDrive",' +
-            '"answer": "solution Found",' +
+            '"answer": "No solution Found",' +
             '"subQuestions": [' +
                 '{' +
                     '"question": "Client-id & client-secret",' +
-                    '"answer": "Answer 11"' +
+                    '"answer": "You can find client-id[Key] and client-secret[Secret] from its Azure app console. You can find steps in userguide."' +
                 '},' +
                 '{' +
                     '"question": "Redirect uri",' +
-                    '"answer": "Answer 2"' +
+                    '"answer": "Redirect uri mismatch error can occur due to not entering redirect url in Azure app console. You can find all steps in userguide."' +
                 '},' +
                 '{' +
                     '"question": "Unable to Integrate",' +
-                    '"answer": "Answer 3"' +
+                    '"answer": "Make sure all permissions were given while integrating and scopes are correct in Azure app console."' +
                 '},' +
                 '{' +
                     '"question": "Remove Integration",' +
-                    '"answer": "Answer 4"' +
+                    '"answer": "Just by clicking unauthorize symbol next to the active integration you can easily remove integration and integrate again with different account."' +
                 '}' +
             ']' +
         '},' +
         '{' +
             '"question": "GoogleDrive",' +
-            '"answer": "solution Found",' +
+            '"answer": "No solution Found",' +
             '"subQuestions": [' +
                 '{' +
                     '"question": "Client-id & client-secret",' +
-                    '"answer": "Answer 111"' +
+                    '"answer": "You can find client-id[Key] and client-secret[Secret] from its google developer console. You can find steps in userguide."' +
                 '},' +
                 '{' +
                     '"question": "Redirect uri",' +
-                    '"answer": "Answer 2"' +
+                    '"answer": "Redirect uri mismatch error can occur due to not entering redirect url in google developer console. You can find all steps in userguide."' +
                 '},' +
                 '{' +
                     '"question": "Unable to Integrate",' +
-                    '"answer": "Answer 3"' +
+                    '"answer": "Make sure all permissions were given while integrating and scopes are correct in google developer console."' +
                 '},' +
                 '{' +
                     '"question": "Remove Integration",' +
-                    '"answer": "Answer 4"' +
+                    '"answer": "Just by clicking unauthorize symbol next to the active integration you can easily remove integration and integrate again with different account."' +
                 '}' +
             ']' +
         '},' +
         '{' +
             '"question": "AWS",' +
-            '"answer": "solution Found",' +
+            '"answer": "No solution Found",' +
             '"subQuestions": [' +
                 '{' +
                     '"question": "Client-id & client-secret",' +
-                    '"answer": "Answer 1111"' +
+                    '"answer": "You can find client-id[Key] and client-secret[Secret] from its AWS s3 console. You can find steps in userguide."' +
                 '},' +
                 '{' +
-                    '"question": "Redirect uri",' +
-                    '"answer": "Answer 2"' +
+                    '"question": "BucketName",' +
+                    '"answer": "You need to enter exact name of s3 bucket for successfull integration."' +
                 '},' +
                 '{' +
                     '"question": "Unable to Integrate",' +
-                    '"answer": "Answer 3"' +
+                    '"answer": "Make sure your details are correct and bucket is in specific region mentioned in userguide."' +
                 '},' +
                 '{' +
                     '"question": "Remove Integration",' +
-                    '"answer": "Answer 4"' +
+                    '"answer": "Just by clicking unauthorize symbol next to the active integration you can easily remove integration and integrate again with different account."' +
                 '}' +
             ']' +
         '}' +
@@ -150,17 +114,97 @@ public with sharing class ChatBotController {
             '"answer": "No solution Found"' +
         '}' +
     ']' +
+    '},{' +
+    '"question": "Template",' +
+    '"answer": "Refer Userguide",' +
+    '"subQuestions": [' +
+        '{' +
+            '"question": "Template Status",' +
+            '"answer": "No solution Found"' +
+        '},' +
+        '{' +
+            '"question": "Template Limit",' +
+            '"answer": "No solution Found"' +
+        '},' +
+        '{' +
+            '"question": "Template Preview",' +
+            '"answer": "No solution Found"' +
+        '},' +
+        '{' +
+            '"question": "Template deletion",' +
+            '"answer": "No solution Found"' +
+        '}' +
+    ']' +
+    '},{' +
+    '"question": "Others",' +
+    '"answer": "Refer Userguide",' +
+    '"subQuestions": [' +
+        '{' +
+            '"question": "Permission Issue",' +
+            '"answer": "No solution Found"' +
+        '},' +
+        '{' +
+            '"question": "Doc Genius",' +
+            '"answer": "No solution Found"' +
+        '},' +
+        '{' +
+            '"question": "Email Us",' +
+            '"answer": "No solution Found"' +
+        '}' +
+    ']' +
+    
 '}]';
 
-    public class QuestionWrapper {
-        public String question { get; set; }
-        public String answer { get; set; }
-        public List<QuestionWrapper> subQuestions { get; set; }
 
-        public QuestionWrapper(String question,String answer,List<QuestionWrapper> subQuestions) {
-            this.question = question;
-            this.answer = answer;
-            this.subQuestions = subQuestions;
+    //
+    @AuraEnabled
+    public static String storeMessages(String msg){
+        chatBotChats__c enablechat = [SELECT Enable_storage__c FROM chatBotChats__c WITH SECURITY_ENFORCED LIMIT 1];
+        enablechat.Enable_storage__c = true;
+        
+        update enablechat;
+        List<ChatBotData__c> checkData = [SELECT Chats__c FROM ChatBotData__c WHERE CreatedById = :UserInfo.getUserId() WITH SECURITY_ENFORCED LIMIT 1];
+        if(!checkData.isEmpty()){
+            checkData[0].Chats__c = msg;
+            if(!Schema.sObjectType.ChatBotData__c.fields.Chats__c.isUpdateable()){
+                return null;
+            }
+            update checkData;
+
+            enablechat.Enable_storage__c = false;
+            update enablechat;
+        }
+        else{
+            ChatBotData__c storedData = new ChatBotData__c();
+            storedData.Chats__c = msg;
+            if(!Schema.sObjectType.ChatBotData__c.fields.Chats__c.isCreateable()){
+                return null;
+            }
+            insert storedData;
+        }
+        return null;
+    }
+
+    @AuraEnabled
+    public static String checkOldChats(){
+        List<ChatBotData__c> checkData = [SELECT Chats__c FROM ChatBotData__c WHERE CreatedById = :UserInfo.getUserId() WITH SECURITY_ENFORCED LIMIT 1];
+        if(!checkData.isEmpty()){
+            return checkData[0].Chats__c;
+        }
+        else{
+            return null;
+        }
+
+    }
+
+    @AuraEnabled
+    public static void deleteOldChats(){
+        if (!Schema.sObjectType.ChatBotData__c.isDeletable()) {
+            return;
+        }
+        List<ChatBotData__c> checkData = [SELECT Chats__c FROM ChatBotData__c WHERE CreatedById = :UserInfo.getUserId() WITH SECURITY_ENFORCED LIMIT 1];
+        if(!checkData.isEmpty()){
+            delete checkData;
         }
     }
 
@@ -169,166 +213,56 @@ public with sharing class ChatBotController {
         return FAQ_JSON_1;
     }
 
-    @AuraEnabled(cacheable=true)
-    public static List<String> getFAQs() {
-        List<String> mainFAQS = new List<String>();
-        List<QuestionWrapper> faqList = (List<QuestionWrapper>) JSON.deserialize(FAQ_JSON, List<QuestionWrapper>.class);
-        if (!faqList.isEmpty()) {
-            System.debug('total main Question: ' + faqList.size());
-            System.debug('First Question: ' + faqList.get(0).question);
-        }
-        for (QuestionWrapper questWrapper : faqList) {
-        mainFAQS.add(questWrapper.question);
-        System.debug(mainFAQS);
-        }
-        return mainFAQS;
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<String> getSubFAQs(String key){
-        // List<QuestionWrapper> subQuestions = new List<QuestionWrapper>();
-        List<String> subFAQs = new List<String>();
-        // List<QuestionWrapper> subFAQs = new List<QuestionWrapper>();
-        List<QuestionWrapper> faqList = (List<QuestionWrapper>) JSON.deserialize(FAQ_JSON, List<QuestionWrapper>.class);
-        subFAQs = findSubQuestions(FAQ_JSON, key);
-        // for (QuestionWrapper questWrapper : faqList) {
-        // if (questWrapper.question == key) {
-        //     subQuestions.addAll(questWrapper.subQuestions);
-        //     break;
-        // }
-        // System.debug(subQuestions);
-        // }
-        // if(!subQuestions.isEmpty()){
-        //     for(QuestionWrapper subQuestWrapper: subQuestions){
-        //         subFAQs.add(subQuestWrapper.question);
-        //         System.debug(subFAQS);
-        //     }
-        // }
-        if(subFAQS != null)
-        {
-            return subFAQS;
-        }
-        return null;
-    }
-
-    @AuraEnabled
-    public static void extractNestedJSON() {
-        // Parse the JSON string
-        Map<String, Object> jsonMap = (Map<String, Object>) JSON.deserializeUntyped(FAQ_JSON);
-        // Function to find and extract the nested subQuestions
-        System.debug('1');
-        Object nestedSubQuestions = extractSubQuestions(jsonMap);
-
-        // Convert the result back to JSON string if nested subQuestions are found
-
-        System.debug('final answer-->'+nestedSubQuestions);
-        // if (nestedSubQuestions != null) {
-        //     String extractedJSON = JSON.serializePretty(nestedSubQuestions);
-        //     System.debug(extractedJSON);
-        // } else {
-        //     System.debug('No nested subQuestions found');
-        // }
-    }
-
-    private static List<Object> extractSubQuestions(Object jsonObj) {
-        System.debug('2');
-        if (jsonObj instanceof Map<String, Object>) {
-            System.debug('3');
-            Map<String, Object> jsonMap = (Map<String, Object>) jsonObj;
-            if (jsonMap.containsKey('subQuestions') && jsonMap.get('subQuestions') != null) {
-                System.debug('4');
-                List<Object> subQuestions = (List<Object>) jsonMap.get('subQuestions');
-                // for (Object subQuestionObj : subQuestions) {
-                //     Object result = extractSubQuestions(subQuestionObj);
-                //     if (result != null) {
-                //         return result;
-                //     }
-                // }
-                System.debug('subquestion-->'+subQuestions);
-                return subQuestions;
-            }
-        }
-        return null;
-    }
-
-    public static List<String> findSubQuestions(String filteredJson, String key) {
-        List<String> subQuestions = new List<String>();
-        
-        // Parse the filtered JSON string into a list of QuestionWrapper objects
-        List<QuestionWrapper> filteredFaqList = (List<QuestionWrapper>) JSON.deserialize(filteredJson, List<QuestionWrapper>.class);
-        
-        // Search for the parent question within the filtered FAQ list
-        for (QuestionWrapper questWrapper : filteredFaqList) {
-            if (questWrapper.question == key) {
-                // If parent question is found, iterate through its subquestions
-                if (questWrapper.subQuestions != null && !questWrapper.subQuestions.isEmpty()) {
-                    for (QuestionWrapper subQuestWrapper : questWrapper.subQuestions) {
-                        subQuestions.add(subQuestWrapper.question); // Add subquestion to the list
-                    }
-                }
-                break; // No need to continue searching once parent question is found
-            }
-        }
-        
-        return subQuestions;
-    }
-
-
-    @AuraEnabled
-    public static String getSolution(String key) {
-        List<QuestionWrapper> faqList = (List<QuestionWrapper>) JSON.deserialize(FAQ_JSON, List<QuestionWrapper>.class);
-        return findSolution(faqList, key);
-    }
-
-    private static String findSolution(List<QuestionWrapper> faqList, String key) {
-        for (QuestionWrapper questWrapper : faqList) {
-            if (questWrapper.question.equals(key)) {
-                return questWrapper.answer;
-            } else if (questWrapper.subQuestions != null && !questWrapper.subQuestions.isEmpty()) {
-                // Continue searching in the nested subquestions
-                String answer = findSolution(questWrapper.subQuestions, key);
-                if (answer != null) {
-                    return answer;
-                }
-            }
-        }
-        return null;
-    }
 
     @AuraEnabled
     public static String getProfileUrl(String cid) {
-        User cuser = [SELECT Id, FullPhotoUrl FROM User WHERE Id=:cid];
+        if(cid != null){
+        User cuser = [SELECT Id, FullPhotoUrl FROM User WHERE Id=:cid WITH SECURITY_ENFORCED];
         System.debug(cuser.FullPhotoUrl);
         return cuser.FullPhotoUrl;
+        }
+        return 'null';
     }
 
     @AuraEnabled(cacheable=true)
     public static List<ContentVersion> getFileDetails(List<Id> contentDocumentIds) {
+        if(contentDocumentIds != null){
         return [
             SELECT Id, Title, ContentSize, ContentDocumentId 
             FROM ContentVersion 
-            WHERE ContentDocumentId IN :contentDocumentIds
+            WHERE ContentDocumentId IN :contentDocumentIds WITH SECURITY_ENFORCED
         ];
+        }
+        return null;
+    }
+
+    public class EmailDetails {
+        @AuraEnabled public String toAddress { get; set; }
+        @AuraEnabled public String subject { get; set; }
+        @AuraEnabled public String body { get; set; }
+        @AuraEnabled public List<String> fileNames { get; set; }
+        @AuraEnabled public List<String> fileContents { get; set; }
+        @AuraEnabled public String replyTo { get; set; }
     }
 
     @AuraEnabled
-    public static void sendEmailWithAttachment(String toAddress, String subject, String body, List<String> fileNames, List<String> fileContents, String replyTo) {
+    public static void sendEmailWithAttachment(EmailDetails parameters) {
         Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-        mail.setToAddresses(new String[] { toAddress });
-        mail.setSubject(subject);
-        mail.setPlainTextBody(body);
+        mail.setToAddresses(new String[] { parameters.toAddress });
+        mail.setSubject(parameters.subject);
+        mail.setPlainTextBody(parameters.body);
 
-        if (replyTo != null && replyTo != '') {
-            mail.setReplyTo(replyTo);
+        if (parameters.replyTo != null && parameters.replyTo != '') {
+            mail.setReplyTo(parameters.replyTo);
         }
         
         // Prepare attachments
-        if (fileNames != null && fileContents != null && fileNames.size() == fileContents.size()) {
+        if (parameters.fileNames != null && parameters.fileContents != null && parameters.fileNames.size() == parameters.fileContents.size()) {
             List<Messaging.EmailFileAttachment> attachments = new List<Messaging.EmailFileAttachment>();
-            for (Integer i = 0; i < fileNames.size(); i++) {
+            for (Integer i = 0; i < parameters.fileNames.size(); i++) {
                 Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
-                attachment.setFileName(fileNames[i]);
-                attachment.setBody(EncodingUtil.base64Decode(fileContents[i]));
+                attachment.setFileName(parameters.fileNames[i]);
+                attachment.setBody(EncodingUtil.base64Decode(parameters.fileContents[i]));
                 attachments.add(attachment);
             }
             mail.setFileAttachments(attachments);
@@ -338,9 +272,11 @@ public with sharing class ChatBotController {
     }
 
     @AuraEnabled
-    public static void sendFeedbackEmail(String toAddress, String key) {
-        String subject = 'Feedback for chatbot';
-        String body = 'I used Chatbot and my rating is ' + key + ' out of 5';
+    public static void sendFeedbackEmail(String toAddress, String key, String feedback,String chats) {
+        String subject = 'Feedback for chatbot and chats';
+            String body = 'User\'s rating for chatbot is ' + key + ' out of 5.\n' +
+                  'Reason:- ' + feedback + '\n' +
+                  'chats:- ' + chats;
         Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
         mail.setToAddresses(new String[] { toAddress });
         mail.setSubject(subject);

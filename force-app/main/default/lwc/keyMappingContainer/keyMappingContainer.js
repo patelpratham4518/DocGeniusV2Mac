@@ -15,6 +15,11 @@ export default class KeyMappingContainer extends LightningElement {
     @api cancelButtonLabel;
     @api previewButtonLabel;
 
+    _hideMergeTemplates = false // (hide-merge-templates)
+    @api get hideMergeTemplates(){ return this._hideMergeTemplates };
+    set hideMergeTemplates(value){ this._hideMergeTemplates = value == true || value == 'true' ? true : false }
+
+
     @track field_Vs_KeyList = [];
     @track selectedObjectName;
 
@@ -67,6 +72,9 @@ export default class KeyMappingContainer extends LightningElement {
     @track contentVersionImg = [];
     @track contentVersionToDisplay = [];
 
+    @track isExceedRelatedListLimit = false;
+    maxRelatedLIstTableLimit = 10;
+
     get displayFullHeightBtn(){
         return this.showFullHeightButton == 'true' ? true : false;
     }
@@ -117,6 +125,11 @@ export default class KeyMappingContainer extends LightningElement {
             return this.generalFieldTypes;
         }
         return [];
+   }
+
+   get childTableLimitErrorMsg(){
+        // return 'Related List Table Limit Exceed. You Can Not Insert More Then 10 Related List Tables.';
+        return this.isExceedRelatedListLimit ? `Related List Table Limit Exceeded. You Can Not Insert More Then ${this.maxRelatedLIstTableLimit} Related List Tables.` : ''
    }
 
    get selectedValue(){
@@ -217,8 +230,8 @@ export default class KeyMappingContainer extends LightningElement {
         }
    }
 
-   get setSelectFieldBtn(){
-        return this.selectedChildObjectName ? false : true;
+   get setSelectChildObj(){
+        return (this.selectedChildObjectName && !this.isExceedRelatedListLimit) ? false : true;
    }
 
 //    get formatPlaceholder(){
@@ -227,14 +240,18 @@ export default class KeyMappingContainer extends LightningElement {
 
     connectedCallback(){
         try {
-            console.log('this.ObjectName : ', this.objectName);
             this.fetchFieldMapping();
             this.fetchChildObjects();
             this.fetchGeneralFields();
-            this.fetchAllActiveTemps();
+            (!this.hideMergeTemplates) && this.fetchAllActiveTemps();
             this.fetchAllContentVersionImages();
             this.fetchFormatMappingKeys();
             window.addEventListener('resize', this.resizeFunction);
+
+            if(this.hideMergeTemplates){
+                const index = this.mappingTypeTabs.indexOf(this.mappingTypeTabs.find(ele => ele.name == 'mergeTemplates'));
+                index !== -1 && this.mappingTypeTabs.splice(index, 1);
+            }
         } catch (error) {
             console.log('error in FieldMappingKey.connectedCallback : ', error.stack);
         }
@@ -254,7 +271,7 @@ export default class KeyMappingContainer extends LightningElement {
 
     fetchFieldMapping(){
         try {
-            getFieldMappingKeys({sourceObjectAPI : this.objectName})
+            getFieldMappingKeys({sourceObjectAPI : this.objectName, getParentFields : true})
             .then(result => {
                 console.log('getFieldMappingKeys result  : ', result);
                     if(result.isSuccess){
@@ -1024,6 +1041,20 @@ export default class KeyMappingContainer extends LightningElement {
 
     handleSave(){
         this.dispatchEvent(new CustomEvent('save'));
+    }
+
+    handleDisableTabClick(event){
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    @api
+    relatedListTableLimitExceed(isExceed){
+        try {
+            this.isExceedRelatedListLimit = isExceed;
+        } catch (error) {
+            console.log('error in childTableLimitExceed : ', error.stack);
+        }
     }
 
 }

@@ -1,15 +1,36 @@
+/*******************************************************
+* Name          : AwsAuthorizationController
+* Author        : Tirth
+* Create Date   : 22/04/2024 
+* UsedBy        : OneDriveSuccessPage 
+* Test Class    : AwsAuthorizationControllerTest
+* Description   : Apex Class used for generating signature.
+* Company       : MV Clouds
+*******************************************************/
 public with sharing class AwsAuthorizationController {
+
+    public class AuthHeaderParams {
+        @AuraEnabled public String contentType { get; set; }
+        @AuraEnabled public String filename { get; set; }
+        @AuraEnabled public String formatedDateString { get; set; }
+        @AuraEnabled public String fileExtension { get; set; }
+        @AuraEnabled public String methodName { get; set; }
+        @AuraEnabled public String bucketName { get; set; }
+        @AuraEnabled public String awsKey { get; set; }
+        @AuraEnabled public String awsSecret { get; set; }    
+    }
+
 
     @AuraEnabled
     public static Map<String, Object> checkawsauth(){
         try{
-            AwsAuthProviderSettings__c settings = AwsAuthProviderSettings__c.getInstance();
+            AwsAuthProviderSettings__c settings = AwsAuthProviderSettings__c.getOrgDefaults();
             Map<String, Object> result = new Map<String, Object>();
             if (settings != null && settings.ClientId__c != null && settings.ClientSecret__c != null && settings.BucketName__c != null && settings.LinkedDate__c != null) {
-                    result.put('bucket', settings.BucketName__c);
-                    result.put('linkdate', settings.LinkedDate__c);
-                    result.put('active', settings.WorkingStatus__c);
-                    result.put('name', settings.NickName__c);
+                result.put('bucket', settings.BucketName__c);
+                result.put('linkdate', settings.LinkedDate__c);
+                result.put('active', settings.WorkingStatus__c);
+                result.put('name', settings.NickName__c);
                 return result;
             }
             result.put('error', 'Error obtaining details: ');
@@ -21,21 +42,23 @@ public with sharing class AwsAuthorizationController {
         }
     }
 
+
     @AuraEnabled
     public static Boolean unauthorize(){
         try {
-            AwsAuthProviderSettings__c settings = AwsAuthProviderSettings__c.getInstance();
-        if(settings != null){
-            settings.BucketName__c = '';
-            settings.ClientId__c = '';
-            settings.ClientSecret__c = '';
-            settings.LinkedDate__c = '';
-            settings.WorkingStatus__c = false;
-            settings.NickName__c = '';
-            upsert settings;
-            return true;
-        }
-        return false;
+            AwsAuthProviderSettings__c settings = AwsAuthProviderSettings__c.getOrgDefaults();
+            if(settings != null){
+                settings.BucketName__c = '';
+                settings.ClientId__c = '';
+                settings.ClientSecret__c = '';
+                settings.LinkedDate__c = '';
+                settings.WorkingStatus__c = false;
+                settings.NickName__c = '';
+                upsert settings;
+                System.debug(settings.ClientId__c);
+                return true;
+            }
+            return false;
         } catch (Exception e) {
             Log_Handler.store_Exception(e, 'AwsAuthorizationController', 'unauthorize');
             System.debug('Exception of unauthorize got invoked');
@@ -53,7 +76,7 @@ public with sharing class AwsAuthorizationController {
             return 'All Details are compulsory';
             }
 
-            AwsAuthProviderSettings__c settings = AwsAuthProviderSettings__c.getInstance();
+            AwsAuthProviderSettings__c settings = AwsAuthProviderSettings__c.getOrgDefaults();
             if (settings == null) {
                 settings = new AwsAuthProviderSettings__c();
             }
@@ -67,10 +90,7 @@ public with sharing class AwsAuthorizationController {
             System.debug('Today\'s Date ==>'+formattedDate);
             settings.LinkedDate__c = formattedDate;
             settings.WorkingStatus__c = true;
-
-
             Boolean status = UploadDocuments(bucket, clientId, clientSecret);
-
             if(status)
             {
                 System.debug('before upsert');
@@ -80,169 +100,139 @@ public with sharing class AwsAuthorizationController {
             else{
                 System.debug('auth failed');
                 return 'Failure';
-            }
-            
-            
+            } 
         } catch (Exception e) {
             Log_Handler.store_Exception(e, 'AwsAuthorizationController', 'authorize');
             System.debug('Exception of authorize got invoked');
             return null;
         }
-        
     }
 
-    public static string createAuthHeader(string contentType, string filename, string formatedDateString, string fileExtension, String methodName, String bucketName, String awsKey, String awsSecret){
-        System.debug('1-->'+contentType);
-        System.debug('2-->'+filename);
-        System.debug('3-->'+formatedDateString);
-        System.debug('4-->'+fileExtension);
-        System.debug('5-->'+methodName);
-        System.debug('6-->'+bucketName);
-        System.debug('7-->'+awsKey);
-        System.debug('8-->'+awsSecret);
-        string auth;
-        string stringToSign = methodName+'\n\n'+contentType+'\n'+formatedDateString+'\n/'+bucketName+'/'+fileName.toLowerCase()+'.'+fileExtension.toLowerCase();
-        Blob mac = Crypto.generateMac('HMACSHA1', blob.valueOf(stringToSign), blob.valueOf(awsSecret));
-        string sig = EncodingUtil.base64Encode(mac);
-        auth = 'AWS'+' '+awsKey+':'+sig;
-        System.debug('Auth header created');
-        return auth;
+    public static string createAuthHeader(AuthHeaderParams params){
+        try{
+            System.debug('1-->'+params.contentType);
+            System.debug('2-->'+params.filename);
+            System.debug('3-->'+params.formatedDateString);
+            System.debug('4-->'+params.fileExtension);
+            System.debug('5-->'+params.methodName);
+            System.debug('6-->'+params.bucketName);
+            System.debug('7-->'+params.awsKey);
+            System.debug('8-->'+params.awsSecret);
+            string auth;
+            string stringToSign = params.methodName+'\n\n'+params.contentType+'\n'+params.formatedDateString+'\n/'+params.bucketName+'/'+params.fileName.toLowerCase()+'.'+params.fileExtension.toLowerCase();
+            Blob mac = Crypto.generateMac('HMACSHA1', blob.valueOf(stringToSign), blob.valueOf(params.awsSecret));
+            string sig = EncodingUtil.base64Encode(mac);
+            auth = 'AWS'+' '+params.awsKey+':'+sig;
+            System.debug('Auth header created');
+            return auth;
+        } catch (Exception e) {
+            Log_Handler.store_Exception(e, 'AwsAuthorizationController', 'createAuthHeader');
+            System.debug('Exception of createAuthHeader got invoked');
+            return null;
+        }  
     }
+
 
     public static Blob generateDummyFileData() {
-        // Generate some dummy data (e.g., text content)
         String dummyContent = 'This is a dummy file.';
         return Blob.valueOf(dummyContent);
     }
 
+
     @AuraEnabled
     public static Boolean UploadDocuments(String bucketName, String clientid, String clientsecret){
+        try{
             String hostName = 's3.amazonaws.com';
             String methodName = 'PUT';
-
             Blob fileData = generateDummyFileData();
-
             String fileExtension = 'txt';
-        
             // Set the file name
             String fileName = 'dummyfile';
-            
             // Set the content type
             String contentType = 'text/plain';
-            
             // Call the uploadToS3 method with generated data                
+            String fileUrl = 'https://' + bucketName + '.' + hostName + '/' + fileName + '.txt';
+            // Generate the formatted date string
+            String formatedDateString = Datetime.now().formatGMT('EEE, dd MMM yyyy HH:mm:ss z');
+            // Create the authorization header
+            AuthHeaderParams params = new AuthHeaderParams();
+            params.ContentType = contentType;
+            params.Filename = fileName;
+            params.formatedDateString = formatedDateString;
+            params.FileExtension = fileExtension;
+            params.MethodName = methodName;
+            params.BucketName = bucketName;
+            params.AwsKey = clientid;
+            params.AwsSecret = clientsecret;
+            String authHeader = createAuthHeader(params);
+            // Create the HTTP request
+            HttpRequest req = new HttpRequest();
+            req.setMethod(methodName);
+            req.setEndpoint(fileUrl);
+            req.setHeader('Content-Length', String.valueOf(fileData.size()));
+            req.setHeader('Host', bucketName + '.' + hostName);
+            req.setHeader('Content-Type', contentType);
+            req.setHeader('Date', formatedDateString);
+            req.setHeader('Authorization', authHeader);
+            req.setBodyAsBlob(fileData);
+            // Send the request
+            Http h = new Http();
+            HttpResponse res = h.send(req);
 
-        String fileUrl = 'https://' + bucketName + '.' + hostName + '/' + fileName + '.txt';
-        
-        // Generate the formatted date string
-        String formatedDateString = Datetime.now().formatGMT('EEE, dd MMM yyyy HH:mm:ss z');
-        
-        // Create the authorization header
-        String authHeader = createAuthHeader(contentType, fileName, formatedDateString, fileExtension, methodName, bucketName, clientid, clientsecret);
-        
-        // Create the HTTP request
-        HttpRequest req = new HttpRequest();
-        req.setMethod(methodName);
-        req.setEndpoint(fileUrl);
-        req.setHeader('Content-Length', String.valueOf(fileData.size()));
-        req.setHeader('Host', bucketName + '.' + hostName);
-        req.setHeader('Content-Type', contentType);
-        req.setHeader('Date', formatedDateString);
-        req.setHeader('Authorization', authHeader);
-        req.setBodyAsBlob(fileData);
-        
-        // Send the request
-        Http h = new Http();
-        HttpResponse res = h.send(req);
-        
-        // Check the response
-        if (res.getStatusCode() == 200) {
-            System.debug('File uploaded successfully to AWS S3');
-            deleteFile(bucketName, clientsecret, clientid);
-            return true;
-            
-        } else {
-            System.debug('Error message =>' + res.getBody());
-            System.debug('Failed to upload file to AWS S3. HTTP Status: ' + res.getStatus());
-            return false;
-        }
+            // Check the response
+            if (res.getStatusCode() == 200) {
+                System.debug('File uploaded successfully to AWS S3');
+                deleteFile(bucketName, clientsecret, clientid);
+                return true;
+
+            } else {
+                System.debug('Error message =>' + res.getBody());
+                System.debug('Failed to upload file to AWS S3. HTTP Status: ' + res.getStatus());
+                return false;
+            }
+        } catch (Exception e) {
+            Log_Handler.store_Exception(e, 'AwsAuthorizationController', 'UploadDocuments');
+            System.debug('Exception of UploadDocuments got invoked');
+            return null;
+        }  
     }
+
 
     public static void deleteFile(String bucketName, String secret, String access) {
-        HttpRequest request = new HttpRequest();
-        request.setEndpoint('https://' + bucketName + '.' + 's3.amazonaws.com' + '/' + 'dummyfile' + '.txt');
-        request.setMethod('DELETE');
+        try{
+            HttpRequest request = new HttpRequest();
+            request.setEndpoint('https://' + bucketName + '.' + 's3.amazonaws.com' + '/' + 'dummyfile' + '.txt');
+            request.setMethod('DELETE');
+            String formatedDateString = Datetime.now().formatGMT('EEE, dd MMM yyyy HH:mm:ss z');
+            // Add AWS authentication headers
+            AuthHeaderParams params = new AuthHeaderParams();
+            params.ContentType = 'text/plain';
+            params.Filename = 'dummyfile';
+            params.formatedDateString = formatedDateString;
+            params.FileExtension = 'txt';
+            params.MethodName = 'DELETE';
+            params.BucketName = bucketName;
+            params.AwsKey = access;
+            params.AwsSecret = secret;
+            String awsAuthHeader = createAuthHeader(params);
+            request.setHeader('Authorization', awsAuthHeader);
+            request.setHeader('Host', bucketName + '.' + 's3.amazonaws.com');
+            request.setHeader('Content-Type', 'text/plain');
+            request.setHeader('Date', formatedDateString);
 
-        String formatedDateString = Datetime.now().formatGMT('EEE, dd MMM yyyy HH:mm:ss z');
-        
-        // Add AWS authentication headers
-        String awsAuthHeader = createAuthHeader('text/plain', 'dummyfile', formatedDateString, 'txt', 'DELETE', bucketName, access, secret);
-        request.setHeader('Authorization', awsAuthHeader);
-        request.setHeader('Host', bucketName + '.' + 's3.amazonaws.com');
-        request.setHeader('Content-Type', 'text/plain');
-        request.setHeader('Date', formatedDateString);
-        
-        // Perform HTTP callout
-        Http http = new Http();
-        HttpResponse response = http.send(request);
-        
-        // Check the response
-        if (response.getStatusCode() == 204) {
-            System.debug('File deleted successfully.');
-        } else {
-            System.debug('Error deleting file: ' + response.getBody());
-        }
+            // Perform HTTP callout
+            Http http = new Http();
+            HttpResponse response = http.send(request);
+            // Check the response
+            if (response.getStatusCode() == 204) {
+                System.debug('File deleted successfully.');
+            } else {
+                System.debug('Error deleting file: ' + response.getBody());
+            }
+        } catch (Exception e) {
+            Log_Handler.store_Exception(e, 'AwsAuthorizationController', 'deleteFile');
+            System.debug('Exception of deleteFile got invoked');
+        }  
     }
-
-public static Blob generateDummyImageData() {
-    // Base64 encoded data for a simple 1x1 black JPEG image
-    String base64ImageData = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QAeRXhpZgAATU0AKgAAAAgAA4BMVAAPAAAABAAAAGgAAAAAA';
-    base64ImageData = base64ImageData.substring(base64ImageData.indexOf(',') + 1); // Remove data URI prefix
-    return EncodingUtil.base64Decode(base64ImageData);
-}
-
- public static String generateAuthorizationHeader(String httpVerb, String contentMD5, String contentType, String fileName, String bucket, String secret, String access, string cdate) {
-        String canonicalString = httpVerb + '\n' +
-                                 contentMD5 + '\n' +
-                                 contentType + '\n' +
-                                 cdate + '\n' +
-                                 '/' + bucket + '/' + fileName;
-        Blob signature = Crypto.generateMac('HMACSHA1', Blob.valueOf(canonicalString), EncodingUtil.base64Decode(secret));
-        String authHeader = 'AWS ' + access + ':' + EncodingUtil.base64Encode(signature);
-        return authHeader;
-    }
-
-
-// public static String contentType(String fileType) {
-//     switch on fileType.toLowerCase() {
-//         when 'csv' {
-//             return 'application/vnd.ms-excel';
-//         }
-//         when 'docx' {
-//             return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-//         }
-//         when 'wav' {
-//             return 'audio/wav';
-//         }
-//         when 'pdf' {
-//             return 'application/pdf';
-//         }
-//         when 'png' {
-//             return 'image/png';
-//         }
-//         when else {
-//             return 'image/jpeg';
-//         }
-//     }
-// }
-
-// public static String getFileExtension(String filePath) {
-//     if (filePath != null && filePath.contains('.')) {
-//         return filePath.substring(filePath.lastIndexOf('.') + 1);
-//     }
-//     return null;
-// }
-
-
 
 }

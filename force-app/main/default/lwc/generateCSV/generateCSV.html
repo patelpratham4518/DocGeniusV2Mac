@@ -1,8 +1,8 @@
 <template>
       <c-message-popup></c-message-popup>
-      <div class="spinner-div" if:true={showSpinner}>
-          <c-spinner></c-spinner>
-      </div>
+      <!-- <div class="spinner-div" if:true={showSpinner}> -->
+        <c-document-loader display={showSpinner} style="--docTop:0;"></c-document-loader>
+      <!-- </div> -->
       <div class="main-csv-generator-div">
         <div class="title-div">
           <span class="title-text">CSV Generator</span>
@@ -26,18 +26,31 @@
             placeholder ="Select Template"
             searchable="true"
             onselect={handleTemplateIdChange}
+            if:false={isChild}
             ></c-custom-combobox>
+            <div class="selected-from-parent">
+              <label>Selected Template:</label>
+              <input type="text" value={csvFileName} disabled>
+            </div>
+          </div>
+          <div class="name-extension-div">
+            <lightning-input 
+              type="text"
+              label="Enter File Name"
+              value={csvFileName}
+              placeholder="Enter a file name..."
+              onchange={handleFileNameChange}
+              title="If you don't provide any name, By default the file will be names as the template name."
+            ></lightning-input>
+            <select value={selectedExtension} onchange={handleExtensionChange}>
+              <template for:each={allExtensions} for:item="ext">
+                <option key={ext} value={ext}>{ext}</option>
+              </template>
+            </select>
           </div>
           <lightning-input 
-            type="text"
-            label="Enter File Name"
-            value={csvFileName}
-            placeholder="Enter a file name..."
-            onchange={handleFileNameChange}
-            title="If you don't provide any name, By default the file will be names as the template name."
-          ></lightning-input>
-          <lightning-input 
             type="checkbox"
+            checked={showTemplateDetails}
             label="Add Template Details in CSV"
             onchange={handleTemplateDetailsToggle}
             title="If checked, the CSV will contain details like template name, template description and creation time of the CSV."
@@ -45,7 +58,15 @@
         </div>
 
         <div class="btn-div">
-          <button class="generate-btn" onclick={handleGenerateCSV}>Generate CSV</button>
+          <!-- <div class="back-btn conrtol-btn" if:true={isChild} onclick={handleBackClick}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" fill="white"><path d="M47 239c-9.4 9.4-9.4 24.6 0 33.9L207 433c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9L97.9 256 241 113c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0L47 239zM399 79L239 239c-9.4 9.4-9.4 24.6 0 33.9L399 433c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-143-143L433 113c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0z"></path></svg>
+            Back
+          </div> -->
+          <button class="generate-btn" onclick={handleGenerateCSV}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 384 512"><path d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zM256 0V128H384L256 0zM80 64h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16s7.2-16 16-16zm16 96H288c17.7 0 32 14.3 32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V256c0-17.7 14.3-32 32-32zm0 32v64H288V256H96zM240 416h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H240c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+            Generate
+        </button>
+          <!-- <button class="generate-btn" onclick={handleGenerateCSV}>Generate CSV</button> -->
         </div>
       </div>
 </template>

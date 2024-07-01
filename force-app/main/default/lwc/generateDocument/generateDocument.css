@@ -1,22 +1,18 @@
 .main-div {
     border-radius: 0.5rem;
     text-align: center;
-    width: 100%;
-    height: 100%;
-    padding: 1.5rem;
+    padding: 1.5rem 1.5rem 0 1.5rem;
     background-color: white;
     background-image: url(/resource/homePageImgs/HomBg.png);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    overflow-y: hidden;
-    overflow-x: hidden;
     user-select: none;
-    position: absolute;
-    height: 94%;
-    width: calc(100% + 30%);
-    top: 3%;
-    left: -15%;
+    height: 90vh;
+    /* position: absolute;
+    width: calc(100% + 20%);
+    top: 5%;
+    left: -10%; */
 }
 
 .header-div{
@@ -30,6 +26,44 @@
     bottom: 1.5rem;
     width: calc(100% + 3rem);
     right: 1.5rem;
+    justify-content: space-between;
+    padding: 0.2rem 2rem;
+}
+
+
+.Close-btn-div {
+    position: absolute;
+    top: -1.5rem;
+    right: -1.5rem;
+}
+.Close-btn-div:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+}
+
+.header-div .info-div{
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: space-evenly;
+}
+
+.header-div .info-div .heading{
+    font-size: 1.5rem;
+}
+
+.header-div .info-div .sub-header{
+    font-size: 0.8rem;
+}
+
+.back-btn-div {
+    width: 260px;
+    display: flex;
+    align-items: center;
+    font-size: large;
+    color: #00aeff;
+    cursor: pointer;
+    user-select: none;
 }
 
 /* .main-container {
@@ -38,27 +72,35 @@
     border-radius: 0.5rem;
 } */
 
+/* Style for CSV preview component */
+c-preview-c-s-v {
+    height: calc(100% - 2.5rem);
+    display: flex;
+    margin: -1.5rem;
+}
+
 .main-container {
     display: flex;
     flex-direction: column;
-    max-height: calc(100% - 7.5rem);
+    height: calc(100% - 10.5rem);
     overflow-y: scroll;
     padding: 0 0.5rem 0.5rem 0.5rem;
     margin-bottom: 0.5rem;
 }
 
-.template-select{
-    --inputAreaBorderWidth: 1px;
+.template-select, .folder-select{
+    --inputAreaBorderWidth: 0px;
     --inputAreaBorderColor : white;
     --inputAreaHeight : 3rem;
     --inputAreaBorderRadius : 0.5rem;
-    font-size: 1rem;
+    font-size: 0.8rem;
 }
+
 
 .title-text {
     width: 100%;
     height: 2.5rem;
-    background: #04ADFE;
+    background: #00AEFF;
     border-radius: 0.5rem;
     display: flex;
     align-items: center;
@@ -76,13 +118,18 @@
 }
 
 .edit-btn{
-    width: 200px !important;
+    width: fit-content !important;
+    min-width: 12rem;
     border: none;
+    font-size: 1.15rem !important;
+    color: white !important;
+    background-color: #00aeff !important;
 }
 
 .disabled-button{
     background-color: lightgray !important;
     cursor: not-allowed !important;
+    box-shadow: none !important;
 }
 
 .disabled-button:hover{
@@ -92,7 +139,7 @@
 
 .grid-div{
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(calc(25% - 1rem), 1fr));
     column-gap: 1rem;
     row-gap: 0.5rem;
     text-align: left;
@@ -121,8 +168,22 @@
     cursor: pointer;
 }
 
+.grid-item:has(span.disabled-option){
+    background-color: lightgray !important;
+    box-shadow: none !important;
+    cursor: no-drop;
+}
+
 .grid-item:hover, .edit-btn:hover {
     box-shadow: 0 0 5px 0 lightgray;
+}
+
+.disabled-item {
+    background-color: lightgray !important;
+    box-shadow: none !important;
+}
+.disabled-item:hover{
+    cursor: no-drop;
 }
 
 
@@ -153,24 +214,65 @@
     align-items: center;
     color: white;
     font-size: 1rem;
-    padding: 1rem 0;
-    gap: 5rem;
+    padding: 1rem;
+    gap: 2rem;
     box-shadow: 0 0 15px lightgray;
     clip-path: inset(-15px 0px 0px 0px);
     width: calc(100% + 3rem);
     position: relative;
     right: 1.5rem;
+    height: 6rem;
     background: white;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.file-info-div {
+    flex-grow: 1;
+    color: black;
+    font-size: 0.8rem;
+    font-weight: 300;
+}
+
+
+.file-name-input-div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.file-name-input-div input {
+    flex-grow: 1;
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 5px 0 lightgray;
+    height: 2rem;
+    padding: 0 3rem 0 1rem;
+}
+
+.extension-div {
+    position: absolute;
+    right: 0.5rem;
+}
+
+.additional-info-div {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 0 0 0;
 }
 
 .bottom-btn{
     width: 9rem;
     height: 2.5rem;
-    background-color: #04ADFE;
+    background-color: #00AEFF;
     border: none;
     border-radius: 0.5rem;
     font-size: 1.15rem;
     box-shadow: 0px 0px 10px 0px #00000040;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .bottom-btn:hover {
@@ -404,18 +506,19 @@ svg{
 
 .title-div svg{
     border-radius: 0.3rem;
+    margin-right: 0.5rem;
     padding: 0.2rem;
     height: 2rem;
-    width: 2.4rem;
-    background: white;
+    width: 2rem;
     border: 1px solid #00aeff;
 }
 
 .title-div svg:hover{
-    transition: ease-in-out 0.2s;
+    transition: ease-in-out 0.1s;
     cursor: pointer;
-    background: #d5ebff !important;
-    border: none !important;
+    background: white;
+    box-shadow: 0 0 5px 0 #00aeff;
+    border: none;
 }
 
 .template-selection-div .select-template-option{
@@ -458,15 +561,15 @@ svg{
 .props-div .index{
     background: #a3e2ff;
     border-radius: 0.3rem;
-    margin: auto 0.2rem;
+    margin: 0.5rem;
     padding: 0.3rem;
 }
 
 .select-template-option .name{
-    width: 20%;
+    width: 37%;
 }
 .select-template-option .status{
-    width: 7%;
+    width: 10%;
     border-radius: 0.3rem;
     color: black;
     padding: 0.3rem;
@@ -476,13 +579,14 @@ svg{
     width: 20%
 }
 .select-template-option .type{
-    width: 20%
+    width: 10%
 }
 .select-template-option .version{
-    width: 20%
+    width: 10%
 }
-.select-template-option .redirect{
+.select-template-option .action{
     width: 10%;
+    margin: 0.5rem;
 }
 
 .select-template-option .active-status {
@@ -506,9 +610,7 @@ svg{
 }
 
 .template-selection-div button{
-    
     background-color: white;
-    color: #00aeff;
     border: 1px solid #00aeff;
     width: fit-content;
     font-size: 12px;
@@ -518,8 +620,7 @@ svg{
 }
 
 .template-selection-div button:hover{
-    background-color: #00AEFF;
-    color: white;
+    background-color: #d5ebff;
     box-shadow: 0 0 2px 0 gray;
     transition: 0.2s all;
 }
@@ -529,3 +630,127 @@ svg{
     user-select: none;
     font-size: 1.3rem;
 }
+
+
+/* Select Folder Div */
+
+.folder-select-div {
+    margin-top: 0.5rem;
+    gap: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+c-custom-combobox.folder-select {
+    width: unset;
+    flex-grow: 1;
+}
+
+
+/* .select-folder-div {
+    display: flex;
+    width: 60%;
+    height: 60%;
+    position: relative;
+    top: 20%;
+    left: 20%;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    border-radius: 0.5rem;
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 0.5rem;
+}
+
+.select-folder-div .title-text{
+    margin:0;
+}
+
+.search-field-div{
+    width: 100%;
+    position: relative;
+}
+
+
+.field-search-input{
+    width: 100%;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    padding-left: 2.4rem;
+    -webkit-box-shadow: 0 0 5px 1px lightgray;
+    -moz-box-shadow: 0 0 5px 1px lightgray;
+    box-shadow: 0 0 5px 1px lightgray;
+}
+
+.field-search-input:focus{
+    border: #00AEFF 0.063rem solid;
+}
+
+.field-search-input:focus-visible{
+    outline: none;
+}
+
+.search-img{
+    position: absolute;
+    border-radius: 0.5rem 0 0 0.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.folder-options-div {
+    background: #d5ebff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    flex-grow: 1;
+}
+
+
+.folder-option {
+    display: flex;
+    background: white;
+    border-radius: 0.5rem;
+    height: 2.5rem;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem;
+}
+
+
+.folder-name-div {
+    flex-grow: 1;
+    text-align: left;
+}
+
+.select-btn-div {
+    background: #00AEFF;
+    background-color: white;
+    color: #00aeff;
+    border: 1px solid #00aeff;
+    width: fit-content;
+    font-size: 12px;
+    border-radius: 0.3rem;
+    padding: .15rem .5rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.select-btn-div:hover {
+    background-color: #00AEFF;
+    color: white;
+    box-shadow: 0 0 2px 0 gray;
+    transition: 0.2s all;
+}
+
+.no-folders-found svg{
+    width: 25%;
+    height: 50%;
+} */

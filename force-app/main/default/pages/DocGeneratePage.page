@@ -1,5 +1,5 @@
 <apex:page controller="DocGenerateController"
-		   applyHtmlTag="false" showHeader="false" sidebar="false" standardStylesheets="false" cache="false" title="{!recordName}" >
+		   applyHtmlTag="false" showHeader="false" cache="false">
            
     <html>
         <head>
@@ -15,18 +15,28 @@
                 }         
                 
                 /* **** ***** ****** Editor CSS -- START **** ***** ****** */
+                .note-editor.note-frame hr{
+                    page-break-after: always;
+                    margin: 0px !important;
+                    border-top: none !important;
+                    height: 0px !important;
+                    visibility: none;
+                }
+                .note-editor.note-frame hr:after {
+                    display: none;
+                }
                 .note-editor.note-frame, .note-editor.note-airframe{
                     padding-top: 0px !important;
                     border: none !important;
                     width: 100% !important;
-                    height: 100% !important;
+                    height: max-content !important;
                     overflow: hidden !important;
                     display: block !important;
                 }
                 .note-editor.note-frame .note-editing-area, .note-editor.note-airframe .note-editing-area{
                     max-width: 100% !important;
                     /* margin-right: calc(30% + 1.5rem); */
-                    height: 100% !important;
+                    height: max-content !important;
                     flex-grow: 1 !important;
                     max-height: max-content !important;
                     min-height: auto !important;
@@ -37,39 +47,39 @@
                 }
                 .note-editor.note-frame .note-editing-area .note-editable, .note-editor.note-airframe .note-editing-area .note-editable{
                     height: 100% !important;
-                    min-height: auto !important;
+                    min-height: max-content !important;
                     background-color: white;
                     padding: 0px !important;
                     width: 100% !important;
                     box-shadow: none !important;
                     border: none !important;
                     border-radius: none !important;
-                    margin-bottom: 0px !important;
+                    margin-bottom: 136px !important;
                 }
                 /* **** ***** ****** Editor CSS -- END **** ***** ****** */
 
             </style>
-            <!-- <xml>
-                <w:WordDocument>
-                <w:View>Print</w:View>
-                <w:Zoom>100</w:Zoom>
-                <w:DoNotOptimizeForBrowser/>
-                </w:WordDocument>
-            </xml> -->
             <apex:styleSheet value="{!URLFOR($Resource.summerNote_Editor, '/summernote-lite.css')}"/>
             <apex:includeScript value="{!URLFOR($Resource.pdfLibs, '/html2pdf.bundle.js')}"/>
             <apex:includeScript value="{!URLFOR($Resource.pdfLibs, '/pdfJS/web/pdf.js')}"/>
             <apex:includeScript value="{!URLFOR($Resource.pdfLibs, '/pdfobject.js')}"/>
             <apex:includeScript value="{!$Resource.domToImg}"/>
+            <apex:includeScript value="{!$Resource.html2docx}"/>
+            <apex:includeScript value="{!$Resource.jsZip}"/>
         </head>
         <body>
-            <div class="note-editor note-frame" data-zone="templateContent">
+            <!-- <div class="note-editor note-frame" data-zone="templateContent">
                 <div class="note-editing-area">
                     <div aria-multiline="true" role="textbox" class="note-editable">
                         <apex:outputText value="{!displayText}" escape="false"/>
                     </div>
                 </div>
-            </div>
+            </div> -->
+            <apex:form >
+                <apex:actionFunction action="{!callFromJS}" name="callApexMethod" rerender="formId" >
+                    <apex:param assignTo="{!fileBlob}" name="fileBlob" value=""/>
+                </apex:actionFunction>
+            </apex:form>
         </body>
 
         <script type="text/javascript">
@@ -122,6 +132,7 @@
                         }; 
 
                         const docType = `{!docType}`;   
+                        const useMode = `{!useMode}`;   
                         const pageMargins = '{!pageMargins}';
                         const mArray = pageMargins.split(';');
                         const pageWidth = pageFormats['{!pageSize}'][0];
@@ -130,20 +141,24 @@
                     const promises = [];
                     const dummyImgSrc = 'data:image/png;base64,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'
                     
-                    const node = document.body;
+                    const node = document.createElement('div');
+                    node.innerHTML =`<div class="note-editor note-frame" data-zone="templateContent">
+                                            <div class="note-editing-area">
+                                                <div aria-multiline="true" role="textbox" class="note-editable">
+                                                    {!displayText}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        `;
                     //  ==== Convert URL src into base64 =======
                     const images = node.querySelectorAll('img');
                     images.forEach(ele => {
-                        const width = ele.width;
-                        const height = ele.height;
                         if(ele.src.startsWith('http')){
                             // promises.push(convertImgToBase64(ele.src).then(base64Img => {
                             //     ele.src = base64Img;
                             // }));
                             ele.src = dummyImgSrc;
                         }
-                        ele.width = width;
-                        ele.height = height;
                     });
 
                 // ==== ===  Function to convet URL src to base64 src using canvas APIs ==== =====
@@ -183,7 +198,8 @@
                             downloadPDF();
                         }
                         else if(docType == 'DOC'){
-                            downloadDOC();
+                            // downloadDOC();
+                            generateDOCX();
                         }
                         else if(docType == 'PPT'){
                             
@@ -200,10 +216,17 @@
                             pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
                             jsPDF: { unit: '{!pageConfigUnit}', format: '{!pageSize}', orientation: '{!pageOrientation}' }
                         };
-    
-                        html2pdf().set(opt).from(document.body).save();
-                    }
 
+                        var pdf =  html2pdf().set(opt).from(node);
+                        if(useMode == 'download'){
+                            pdf.save();
+                        }
+                        else if(useMode == 'generate'){
+                            pdf.outputPdf().then(function (pdfBlob){
+                                callApexMethod(pdfBlob);
+                            })
+                        }
+                    }
 
                     function downloadDOC(){
                          //  _html_ will be replace with custom html
@@ -211,34 +234,67 @@
                         //  _styles_ will be replaced with custome css
                         var head= "<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n<style>\n_styles_\n</style>\n</head>\n";
             
-                        var html = document.body.innerHTML;
+                        var html = `<div style='mso-element:header' id=h1 >
+                                        <!-- HEADER-tags -->
+                                        <p class=MsoHeader >HEADER</p>
+                                    <!-- end HEADER-tags -->
+                                    </div>`
+                        html += node.innerHTML;
                         
                         var blob = new Blob(['\ufeff', html], {
                             type: 'application/msword'
                         });
+
+                        var orientation = '{!pageOrientation}'
+                        // mso-page-orientation: ${orientation};
                         
                         var css = (
                                 `<style>
-                                    @page {
+                                    @page note-editor{
                                         size: ${pageWidth}pt ${pageHeight}pt;
                                         margin-top: ${parseInt(mArray[0])}{!pageConfigUnit};
                                         margin-bottom: ${parseInt(mArray[1])}{!pageConfigUnit};
                                         margin-left: ${parseInt(mArray[2])}{!pageConfigUnit};
                                         margin-right: ${parseInt(mArray[3])}{!pageConfigUnit};
-                                        mso-page-orientation: {!pageOrientation};
-                                        mso-header: none;
+                                        mso-header: h1;
                                         mso-footer: none;
                                     }
+                                    @top-center {
+                                        content: element(header);
+                                    }
+                                    @bottom-left {
+                                            content: element(footer);
+                                    }
+                                
+                                div.header {
+                                            padding: 10px;
+                                            position: running(header);
+                                                
+                                }
+                                div.footer {
+                                        display: block;
+                                        padding: 5px;
+                                    position: running(footer);
+                                }
                                     img {width:100%;}
                                     table {border-collapse: collapse; border-spacing: 0;}
                                     td{padding: 6px;}
+
+                                    p.MsoFooter, li.MsoFooter, div.MsoFooter
+                                    {
+                                        margin:0in;
+                                        margin-bottom:.0001pt;
+                                        mso-pagination:widow-orphan;
+                                        tab-stops:center 3.0in right 6.0in;
+                                        font-size:12.0pt;
+                                    }
                                 </style>`
                             );
 
                         //  Image Area %%%%
                         var options = { maxWidth: 624};
                         var images = Array();
-                        var img = document.body.querySelectorAll("img");
+                        var img = node.querySelectorAll("img");
                         for (var i = 0; i < img.length; i++) {
                             // Calculate dimensions of output image
                             // var w = Math.min(img[i].width, options.maxWidth);
@@ -281,21 +337,140 @@
 
                         var output = meta.replace("_html_", head.replace("_styles_", css) +  html) + imgMetaData;
 
+                        console.log('output : ', output);
+
                         var url = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(output);
+                        // if(useMode == 'download'){
 
-                        filename = '{!recordName}' + '.doc' ;
-                        var downloadLink = document.createElement("a");
-                        document.body.appendChild(downloadLink);
+                            filename = '{!recordName}' + '.doc' ;
+                            var downloadLink = document.createElement("a");
+                            document.body.appendChild(downloadLink);
 
-                        if (navigator.msSaveOrOpenBlob) {
-                            navigator.msSaveOrOpenBlob(blob, filename);
-                        } else {
-                            downloadLink.href = url;
-                            downloadLink.download = filename;
-                            downloadLink.click();
-                        }
-                        document.body.removeChild(downloadLink);
+                            if (navigator.msSaveOrOpenBlob) {
+                                navigator.msSaveOrOpenBlob(blob, filename);
+                            } else {
+                                downloadLink.href = url;
+                                downloadLink.download = filename;
+                                downloadLink.click();
+                            }
+                            document.body.removeChild(downloadLink);
+                        // }
+                        // else if(useMode == 'generate'){
+                            
+                            // Initialize JSZip
+                            // var zip = new JSZip();
+
+                            // zip.file('[Content_Types].xml');
+                            // zip.folder('_rels').file('.rels');
+                            // return zip.folder('word').file('document.xml').file('afchunk.mht', output).folder('_rels').file('document.xml.rels');
+
+
+                            // // Generate a blob from the zip content
+                            // zip.generateAsync({ type: "blob" })
+                            // .then(function (blob) {
+                            //     // Save the blob as a .docx file
+                            //     var link = document.createElement('a');
+                            //     document.body.appendChild(link);
+                            //     link.href = URL.createObjectURL(blob);
+                            //     link.download = '{!recordName}' + '.docx';
+                            //     link.click();
+                            //     document.body.removeChild(link);
+                            // });
+                        // }
+
                     }
+
+                    function generateDOCX(){
+
+                        // ===== =======  Image Configurations ======= ========
+                        var regularImages = node.querySelectorAll("img");
+                        var canvas = document.createElement('canvas');
+                        var ctx = canvas.getContext('2d');
+                        [].forEach.call(regularImages, function (imgElement) {
+                            // preparing canvas for drawing
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            canvas.width = imgElement.width;
+                            canvas.height = imgElement.height;
+
+                            ctx.drawImage(imgElement, 0, 0);
+                            // by default toDataURL() produces png image, but you can also export to jpeg
+                            // checkout function's documentation for more details
+                            var dataURL = canvas.toDataURL();
+                            imgElement.setAttribute('src', dataURL);
+                        })
+                        canvas.remove();
+
+                        var content = '<!DOCTYPE html>' + node.innerHTML;
+                        var orientation = '{!pageOrientation}'
+                        
+                        const opt = {
+                            orientation: orientation,
+                            margin: {
+                                top : toPx(parseInt(mArray[0])),
+                                right : toPx(parseInt(mArray[3])),
+                                bottom : toPx(parseInt(mArray[1])),
+                                left : toPx(parseInt(mArray[2])),
+                            }
+                        }
+                        
+                        var converted = htmlDocx.asBlob(content, opt);
+
+                        if(useMode == 'generate'){
+                            var link = document.createElement('a');
+                            document.body.appendChild(link);
+                            link.href = URL.createObjectURL(converted);
+                            link.download = '{!recordName}' + '.docx';
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                        else if(useMode == 'generate'){
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const base64data = reader.result               
+                                console.log('converted : ', base64data);
+                                callApexMethod(base64data);
+                            }
+                            reader.readAsDataURL(converted);
+                        }
+                    }
+
+
+                    // --- ---- --- for pt Unit ---- ----- ----
+                    function unitMultiplier(unit){
+                            switch (unit) {
+                                case 'pt':
+                                return 1;
+                            
+                                case 'mm':
+                                return 72 / 25.4;
+                            
+                                case 'cm':
+                                return 72 / 2.54;
+                            
+                                case 'in':
+                                return 72;
+                            
+                                case 'px':
+                                return 72 / 96;
+                            
+                                case 'pc':
+                                return 12;
+                            
+                                case 'em':
+                                return 12;
+                            
+                                case 'ex':
+                                return 6;
+                            
+                                default:
+                                return null;
+                            }
+                        };
+
+                        function toPx(value){
+                            var toPt = unitMultiplier('{!pageConfigUnit}') * value;
+                            return (toPt * 1.3334 * 5);
+                        }
 
 
                 } catch (error) {

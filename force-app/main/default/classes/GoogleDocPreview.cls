@@ -17,7 +17,7 @@ public with sharing class GoogleDocPreview {
                 String modiFiedDocContent = sourceDocContent;
                 modiFiedDocContent = DataMappingController.mappingObjFieldsData(modiFiedDocContent, recordId, objectApiName);
                 modiFiedDocContent = DataMappingController.mappingGeneralFieldData(modiFiedDocContent);
-                modiFiedDocContent = DataMappingController.mappingMergeTemplate(modiFiedDocContent);
+                modiFiedDocContent = DataMappingController.mappingMergeTemplate(modiFiedDocContent, recordId, objectApiName);
                 List<Object> bodyContentOriginal = (List<Object>) ((Map<String,Object>)JSON.deserializeUntyped(JSON.serialize(((Map<String,Object>) JSON.deserializeUntyped(sourceDocContent)).get('body')))).get('content');
                 List<Object> bodyContentNew = (List<Object>) ((Map<String,Object>)JSON.deserializeUntyped(JSON.serialize(((Map<String,Object>) JSON.deserializeUntyped(modiFiedDocContent)).get('body')))).get('content');
                 List<Object> requests = formatContentForBatchUpdate(bodyContentNew,bodyContentOriginal,recordId,objectApiName);

@@ -721,6 +721,13 @@
     cursor: not-allowed;
     border: 1px solid #cacaca;
   }
+  .relatedListMaxTableError{
+    color: #ff1111;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    padding-inline: 1rem;
+  }
 
   .relatedListInfoText{
     font-size: 13px;
@@ -1026,31 +1033,7 @@
   /* ====== ========= ========= ========== Media Query ======== ======== ======= ========= ========= ========= ======== ======= */
   
   @media only screen and (max-width: 1350px){
-    /* .toggleFieldMapping{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.25rem;
-  
-      position: absolute;
-      top: 0.5rem;
-      right: 100%;
-      
-      width: 5.5rem;
-      padding: 0.25rem 0.5rem;
-      border: 1px solid #00000021;
-      border-top-left-radius: 6px;
-      border-bottom-left-radius: 6px;
-      background: white;
-      overflow: hidden;
-      transition: all linear 0.325s;
-      cursor: pointer;
-      user-select: none;
-  
-      font-size: 14px;
-      font-family: var(--ff_Bahnschrift);
-  
-    } */
+    
   }
   @media only screen and (max-width: 1024px){
   

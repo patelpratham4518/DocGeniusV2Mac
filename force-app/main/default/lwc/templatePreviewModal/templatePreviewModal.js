@@ -89,7 +89,7 @@ export default class TemplatePreviewModal extends LightningElement {
         try {
             this.isSpinner = true;
             this.spinnerLabel = 'Generating Preview...';
-            this.updateSpinnerLabel('We are Almost There... Please wait a while...', 4000);
+            this.updateSpinnerLabel('We are Almost There... Please wait a while...', 5000);
 
             var previousSRC = this.vfPageSRC;
 
@@ -100,7 +100,6 @@ export default class TemplatePreviewModal extends LightningElement {
                 'usedFrom' : this.usedFrom ? this.usedFrom : ''
             }
             var paraDataStringify = JSON.stringify(paraData);
-            console.log('vfPageSRC before : ', this.vfPageSRC);
 
             var newSRC = '/apex/DocPreviewPage?paraData=' + paraDataStringify;
 
@@ -109,23 +108,21 @@ export default class TemplatePreviewModal extends LightningElement {
                 'Object_API_Name__c' : this.objectname,
                 'recordId' : this.selectedRecordId,
                 'docType' : 'DOC',
-                'useMode' : 'return',
+                'useMode' : 'generate',
                 // 'useMode' : 'download',
             }
             var paraDataStringify2 = JSON.stringify(paraData2);
-            // this.vfGeneratePageSRC = '/apex/DocGeneratePage?paraData=' + paraDataStringify2;
-            this.vfGeneratePageSRC = '/apex/GenerateDOCX?paraData=' + paraDataStringify2;
+            this.vfGeneratePageSRC = '/apex/DocGeneratePage?paraData=' + paraDataStringify2;
+            // this.vfGeneratePageSRC = '/apex/GenerateDOCX?paraData=' + paraDataStringify2;
 
             if(newSRC != previousSRC){
                 this.vfPageSRC = newSRC;
             }
             else{
-                // Fake Loading...
+                this.vfPageSRC = '/apex/DocGeneratePage';
                 setTimeout(() => {
-                    this.isSpinner = false;
-                    this.spinnerLabel = 'Ready to Preview...';
-        
-                }, 500)
+                    this.vfPageSRC = newSRC;
+                }, 100)
             }
             
 

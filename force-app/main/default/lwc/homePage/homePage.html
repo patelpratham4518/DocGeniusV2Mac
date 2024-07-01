@@ -4,13 +4,13 @@
         <div class="contentSection">
             <div class="upperSection">
               <div if:false={isEmptyState} class="createNOption">
-                <div class="createSection" onclick={toggleCreateNEwTemplate}>
+                <div class="createSection" title="Create" onclick={toggleCreateNEwTemplate}>
                   <div class="createTemplateBorder">
                     <img class="createTemplateImg" src={createTemplateImg} />
                   </div>
                 </div>
                 <div class="optionSection">
-                  <div class="optionBtn" onclick={toggleFilterOptions}>
+                  <div class="optionBtn" title="Filters" onclick={toggleFilterOptions}>
                     <template lwc:if={isDisplayOption}>
                       <svg class="optionCloseBtn" viewBox="0 0 22 22" >
                         <path stroke-width="2" fill-rule="evenodd" clip-rule="evenodd" d="M20.7334 2.5537C20.8179 2.46918 20.885 2.36885 20.9307 2.25843C20.9765 2.14801 21 2.02966 21 1.91013C21 1.79061 20.9765 1.67226 20.9307 1.56184C20.885 1.45142 20.8179 1.35109 20.7334 1.26657C20.6489 1.18206 20.5486 1.11502 20.4382 1.06928C20.3277 1.02354 20.2094 1 20.0899 1C19.9703 1 19.852 1.02354 19.7416 1.06928C19.6311 1.11502 19.5308 1.18206 19.4463 1.26657L11 9.71469L2.5537 1.26657C2.46918 1.18206 2.36885 1.11502 2.25843 1.06928C2.14801 1.02354 2.02966 1 1.91013 1C1.79061 1 1.67226 1.02354 1.56184 1.06928C1.45142 1.11502 1.35109 1.18206 1.26657 1.26657C1.18206 1.35109 1.11502 1.45142 1.06928 1.56184C1.02354 1.67226 1 1.79061 1 1.91013C1 2.02966 1.02354 2.14801 1.06928 2.25843C1.11502 2.36885 1.18206 2.46918 1.26657 2.5537L9.71469 11L1.26657 19.4463C1.09589 19.617 1 19.8485 1 20.0899C1 20.3312 1.09589 20.5627 1.26657 20.7334C1.43726 20.9041 1.66875 21 1.91013 21C2.15152 21 2.38301 20.9041 2.5537 20.7334L11 12.2853L19.4463 20.7334C19.617 20.9041 19.8485 21 20.0899 21C20.3312 21 20.5627 20.9041 20.7334 20.7334C20.9041 20.5627 21 20.3312 21 20.0899C21 19.8485 20.9041 19.617 20.7334 19.4463L12.2853 11L20.7334 2.5537Z"/>
@@ -44,13 +44,13 @@
                             <div class="asc_desc_section">
                               <input type="radio" id="ascBtn" value="asc" onchange={setSortingOrder} data-value="asc" data-name="filterSortAS" name="sortas" style="display: none;" />
                               <label for="ascBtn">
-                                <div class="asc_descBtn">
+                                <div class="asc_descBtn" title="Acceding">
                                   <svg class="asc_desc_SVG" viewBox="0 0 32 32"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M30,11.67H29L25.71.71s0,0-.05-.08a.61.61,0,0,0-.09-.18c0-.06-.08-.1-.12-.15L25.31.19a.69.69,0,0,0-.19-.1L25,0h-.58l-.08,0a.69.69,0,0,0-.19.1.69.69,0,0,0-.13.11l-.13.15a1,1,0,0,0-.09.18s0,.05-.05.08l-3.28,11h-1a1,1,0,0,0,0,2H23a1,1,0,0,0,0-2h-.41l.9-3H26l.9,3H26.5a1,1,0,0,0,0,2H30a1,1,0,0,0,0-2Zm-5.91-5,.66-2.19.66,2.19Z"></path> <path d="M7.25,0a1,1,0,0,0-1,1V28.67l-3.56-3.4a1,1,0,0,0-1.42,0,1,1,0,0,0,0,1.41l5.25,5c0,.05.1.06.15.1a.86.86,0,0,0,.16.1.94.94,0,0,0,.76,0,1.51,1.51,0,0,0,.17-.1s.1-.06.14-.1l5.25-5a1,1,0,0,0,0-1.41,1,1,0,0,0-1.42,0l-3.56,3.4V1A1,1,0,0,0,7.25,0Z"></path> <path d="M30,28.33a1,1,0,0,0-1,1V30H21.75l9-10a1,1,0,0,0,.17-1.07,1,1,0,0,0-.91-.6H19.5a1,1,0,0,0-1,1V21a1,1,0,0,0,2,0v-.67h7.26l-9,10A1,1,0,0,0,19.5,32H30a1,1,0,0,0,1-1V29.33A1,1,0,0,0,30,28.33Z"></path> </g></svg>
                                 </div>
                               </label>
                               <input type="radio" id="descBtn" value="desc" onchange={setSortingOrder} data-value="desc" data-name="filterSortAS" name="sortas" style="display: none;" checked/>
                               <label for="descBtn">
-                                <div class="asc_descBtn">
+                                <div class="asc_descBtn" title="Descending">
                                   <svg class="asc_desc_SVG" viewBox="0 0 32 32" ><g stroke-width="0"></g><g stroke-linecap="round" stroke-linejoin="round"></g><g> <path d="M30,29.88H29L25.71,18.93s0-.06-.05-.09a.76.76,0,0,0-.09-.18l-.12-.14-.14-.12-.19-.1-.08,0H25l-.2,0-.2,0h-.09l-.08,0-.19.1a.74.74,0,0,0-.13.12.64.64,0,0,0-.13.15.91.91,0,0,0-.09.17s0,.05-.05.09l-3.28,11h-1a1,1,0,0,0,0,2H23a1,1,0,0,0,0-2h-.41l.9-3H26l.9,3H26.5a1,1,0,0,0,0,2H30a1,1,0,0,0,0-2Zm-5.91-5,.66-2.18.66,2.18Z"></path> <path d="M2.69,6.72,6.25,3.33V31a1,1,0,0,0,2,0V3.33l3.56,3.39A1,1,0,0,0,12.5,7a1,1,0,0,0,.73-.31,1,1,0,0,0,0-1.42L7.94.27A1.1,1.1,0,0,0,7.8.18a1.51,1.51,0,0,0-.17-.1,1,1,0,0,0-.76,0,.86.86,0,0,0-.16.1.75.75,0,0,0-.15.09l-5.25,5A1,1,0,1,0,2.69,6.72Z"></path> <path d="M30,10.12a1,1,0,0,0-1,1v.67H21.75l9-10A1,1,0,0,0,30.91.71,1,1,0,0,0,30,.12H19.5a1,1,0,0,0-1,1V2.79a1,1,0,0,0,2,0V2.12h7.26l-9,10a1,1,0,0,0-.17,1.07,1,1,0,0,0,.91.6H30a1,1,0,0,0,1-1V11.12A1,1,0,0,0,30,10.12Z"></path> </g></svg>
                                 </div>
                               </label>
@@ -156,8 +156,8 @@
                               </div>
                             </div>
                             <div class="saveSection">
-                              <lightning-button variant="Neutral" label="Clear" title="Clear" onclick={clearFilterOpts} disabled={enableFilterBtn} disable-animation></lightning-button>
-                              <lightning-button variant="brand" label="Apply" title="Save" onclick={applyFilter} disabled={enableFilterBtn} disable-animation></lightning-button>
+                              <lightning-button variant="Neutral" label="Clear" title="Clear Filters" onclick={clearFilterOpts} disabled={enableFilterBtn} disable-animation></lightning-button>
+                              <lightning-button variant="brand" label="Apply" title="Apply Filters" onclick={applyFilter} disabled={enableFilterBtn} disable-animation></lightning-button>
                             </div>
                           </div>
                         </div>
@@ -229,18 +229,13 @@
                     </div>
                     <div class="statusNversion">
                       <div class="tempToggle">
-                        <template lwc:if={template.Template_Status__c}>
-                          <input class="checkBox checked" type="checkbox" data-status="checked" id={template.Id} data-id={template.Id} data-toggel={template.Id} onchange={handleChangeStatus} style="display: none;" checked/>
-                        </template>
-                        <template lwc:else>
-                          <input class="checkBox" type="checkbox" data-status="unchecked" id={template.Id} data-id={template.Id} data-toggel={template.Id} onchange={handleChangeStatus} style="display: none;"/>
-                        </template>
+                        <input class="checkBox checked" type="checkbox" data-status="checked" id={template.Id} data-id={template.Id} data-toggel={template.Id} onchange={handleChangeStatus} style="display: none;" checked={template.Template_Status__c}/>
                         <label for={template.Id}> 
                           <div class="toggleDiv">
                             <div class="toggleBtnBg">
                               <div class="StatusText">
-                                <span>Active</span>
                                 <span>Inactive</span>
+                                <span>Active</span>
                               </div>
                             </div>
                           </div>

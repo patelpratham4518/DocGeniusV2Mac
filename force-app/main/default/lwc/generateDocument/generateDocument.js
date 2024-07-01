@@ -1,8 +1,18 @@
 import { LightningElement , api, track , wire} from 'lwc';
 import docGeniusImgs from "@salesforce/resourceUrl/homePageImgs";
+import docGeniusLogoSvg from "@salesforce/resourceUrl/docGeniusLogoSvg";
 import fetchTemplates from '@salesforce/apex/GenerateDocumentController.fetchTemplates';
+import getIntegrationStatus from '@salesforce/apex/GenerateDocumentController.getIntegrationStatus';
+import getFolders from '@salesforce/apex/GenerateDocumentController.getFolders';
+import storeFilesAndSendEmail from '@salesforce/apex/GenerateDocumentController.storeFilesAndSendEmail';
 import {navigationComps, nameSpace} from 'c/utilityProperties';
 import { NavigationMixin } from 'lightning/navigation';
+import { CloseActionScreenEvent } from "lightning/actions";
+
+
+//CSV Generation methods
+import getTemplateData from '@salesforce/apex/GenerateDocumentController.getTemplateData';
+
 export default class GenerateDocument extends NavigationMixin(LightningElement) {
 
     //Data from record
@@ -18,7 +28,7 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
 
     @track selectedTemplate='';
     @track showEmailSection = false;
-    @track isEditDisabled = true;
+    // @track isEditDisabled = true;
     @track showCC = false;
     @track showBCC = false;
 
@@ -32,7 +42,7 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
 
     @track emailSubject = '';
     @track emailBody = '';
-    // @track showSpinner;
+    @track showSpinner;
 
     isInitialStyleLoaded = false;
 
@@ -48,7 +58,8 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             ],
             name:"PDF",
             viewBox: "0 0 25 29",
-            isSelected : false
+            isSelected : false,
+            extension: '.pdf',
         },
         {
             paths: [
@@ -58,8 +69,9 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
                 }
             ],
             name:"PPT",
-            viewBox: "0 0 23 26",
-            isSelected : false
+            viewBox: "0 0 30 30",
+            isSelected : false,
+            extension: '.ppt',
         },
         {
             paths: [
@@ -70,7 +82,8 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             ],
             name:"DOCX",
             viewBox: "0 0 24 28",
-            isSelected : false
+            isSelected : false,
+            extension: '.docx',
         },
         {
             paths: [
@@ -81,9 +94,25 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             ],
             name:"CSV",
             viewBox: "0 0 25 29",
-            isSelected : false
+            isSelected : false,
+            extension: '.csv',
+        },
+        {
+            paths : [
+                {
+                    fill:"black",
+                    path:"M2.85858 2.87732L15.4293 1.0815C15.7027 1.04245 15.9559 1.2324 15.995 1.50577C15.9983 1.52919 16 1.55282 16 1.57648V22.4235C16 22.6996 15.7761 22.9235 15.5 22.9235C15.4763 22.9235 15.4527 22.9218 15.4293 22.9184L2.85858 21.1226C2.36593 21.0522 2 20.6303 2 20.1327V3.86727C2 3.36962 2.36593 2.9477 2.85858 2.87732ZM4 4.73457V19.2654L14 20.694V3.30599L4 4.73457ZM17 19H20V4.99997H17V2.99997H21C21.5523 2.99997 22 3.44769 22 3.99997V20C22 20.5523 21.5523 21 21 21H17V19ZM10.2 12L13 16H10.6L9 13.7143L7.39999 16H5L7.8 12L5 7.99997H7.39999L9 10.2857L10.6 7.99997H13L10.2 12Z"
+                }
+            ],
+            name: "XLS",
+            viewBox:"0 0 24 24",
+            isSelected : false,
+            extension: '.xls',
         }
     ]
+
+    @track csvDocumentTypes = this.documentTypes.filter(doc => doc.name == 'XLS' || doc.name == 'CSV');
+    @track generalDocumentTypes = this.documentTypes.filter(doc => !(doc.name == 'XLS' ||  doc.name == 'CSV'));
     @track internalStorageOptions = [
         {
             paths :[
@@ -94,7 +123,8 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             ],
             name: "Notes & Attachment",
             viewBox: "0 0 26 27",
-            isSelected : false
+            isSelected : false,
+            isDisabled : false
         },
         {
             paths :[
@@ -151,25 +181,29 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             paths :[{fill:"black", path:"M28.9911 16.3794C28.9881 16.3294 28.9747 16.2838 28.9613 16.2353C28.9479 16.1868 28.936 16.1412 28.9151 16.0971C28.9077 16.0824 28.9077 16.0676 28.9002 16.0544L19.7306 0.367647C19.6653 0.255871 19.5713 0.163051 19.4581 0.0985153C19.345 0.0339799 19.2166 3.27884e-06 19.0859 0H9.91331C9.78312 0.000263272 9.65528 0.034236 9.54253 0.0985293C9.4418 0.159014 9.35747 0.242796 9.29684 0.342647C9.28939 0.352941 9.27748 0.357353 9.27004 0.367647L0.100444 16.0544C0.0346575 16.166 0 16.2929 0 16.4221C0 16.5512 0.0346575 16.6781 0.100444 16.7897L4.68673 24.6324C4.69715 24.6515 4.71949 24.6588 4.7314 24.6765C4.78079 24.7473 4.84286 24.8086 4.91456 24.8574C4.94285 24.8765 4.96518 24.8956 4.99496 24.9103C5.09771 24.9632 5.2079 24.9985 5.33149 25H23.6722C23.8029 25 23.9312 24.966 24.0444 24.9015C24.1576 24.837 24.2516 24.7441 24.3169 24.6324L28.9017 16.7897C28.9121 16.7721 28.9092 16.7485 28.9166 16.7309C28.9546 16.6524 28.9779 16.5676 28.9851 16.4809C28.9866 16.4618 29 16.4441 29 16.4221C29 16.4074 28.994 16.3941 28.9926 16.3779M18.6541 1.47059L26.9645 15.6868H19.5177L11.2043 1.47059H18.6541ZM17.7949 15.6868H11.2028L14.4996 10.0471L17.7949 15.6868ZM1.60141 16.4221L9.91331 2.20588L13.6389 8.57794L5.33 22.7941L1.60141 16.4221ZM23.2403 23.5294H6.61952L10.3451 17.1574H26.966L23.2403 23.5294Z"}],
             name:"Google Drive",
             viewBox: "0 0 29 25",
-            isSelected : false
+            isSelected : false,
+            isDisabled: null,
         },
         {
             paths: [{fill:"black", path:"M9.02569 6.89465C9.02569 7.29181 9.0577 7.60953 9.13771 7.8796C9.21772 8.07023 9.32974 8.32441 9.47377 8.61037C9.53778 8.67391 9.55378 8.76923 9.55378 8.84866C9.55378 8.95987 9.48977 9.05518 9.34575 9.16639L8.67364 9.6112C8.57763 9.67475 8.48161 9.70652 8.4016 9.70652C8.28958 9.70652 8.19357 9.64298 8.08155 9.54766C7.93753 9.3888 7.80951 9.22993 7.69749 9.05518C7.60147 8.88043 7.48946 8.67391 7.37744 8.43562C6.54531 9.40468 5.50515 9.89716 4.24095 9.89716C3.34481 9.89716 2.6407 9.64298 2.11262 9.13461C1.60054 8.62625 1.3285 7.94314 1.3285 7.08528C1.3285 6.21154 1.64855 5.49666 2.28865 4.92475C2.94475 4.38462 3.80888 4.09866 4.89705 4.09866C5.26511 4.09866 5.60116 4.13044 6.03323 4.19398C6.40129 4.24164 6.83335 4.32107 7.24942 4.41639V3.65385C7.24942 2.84365 7.08939 2.3194 6.75334 1.95401C6.40129 1.6204 5.8412 1.47742 5.02507 1.47742C4.64101 1.47742 4.25695 1.52508 3.87289 1.60452C3.47283 1.69983 3.08877 1.81104 2.72071 1.9699C2.54469 2.03345 2.40066 2.0811 2.35266 2.09699C2.27264 2.12876 2.22464 2.12876 2.17663 2.12876C2.03261 2.12876 1.95259 2.03344 1.95259 1.81104V1.28679C1.95259 1.12793 1.9686 1.00084 2.03261 0.921405C2.08061 0.841973 2.17663 0.778428 2.32065 0.730769C2.70471 0.508361 3.13678 0.349498 3.66486 0.222408C4.20809 0.0814015 4.76764 0.0119656 5.32912 0.0158867C6.59332 0.0158867 7.52146 0.30184 8.11355 0.873746C8.70565 1.44565 8.99369 2.3194 8.99369 3.4791V6.89465H9.02569ZM4.70502 8.51505C5.05708 8.51505 5.40913 8.4515 5.79319 8.32441C6.17725 8.19732 6.5133 7.95903 6.80135 7.6413C6.97738 7.43478 7.1054 7.21237 7.20141 6.95819C7.20141 6.70401 7.28142 6.40217 7.28142 6.03679V5.60786C6.96137 5.49665 6.64132 5.49666 6.28927 5.41722C5.95966 5.38148 5.62862 5.36027 5.29711 5.35368C4.577 5.35368 4.06492 5.49666 3.71287 5.78261C3.36081 6.06856 3.20079 6.46572 3.20079 6.98997C3.20079 7.49833 3.31281 7.8796 3.58485 8.11789C3.84089 8.38796 4.20895 8.51505 4.70502 8.51505ZM13.2504 9.64298C13.0954 9.64757 12.9417 9.61487 12.8023 9.54766C12.7543 9.46823 12.6743 9.32525 12.6103 9.13461L10.1139 0.969064C10.0499 0.730769 10.0178 0.619565 10.0178 0.540134C10.0178 0.365385 10.0979 0.270067 10.2739 0.270067H11.3141C11.5221 0.270067 11.6661 0.30184 11.7301 0.381271C11.8261 0.444816 11.8901 0.587793 11.9542 0.794314L13.7304 7.78428L15.3947 0.794314C15.4427 0.587793 15.5067 0.444816 15.6027 0.381271C15.6827 0.317726 15.8268 0.270067 16.0028 0.270067H16.8829C17.0749 0.270067 17.219 0.30184 17.299 0.381271C17.379 0.444816 17.459 0.587793 17.507 0.794314L19.2033 7.8796L21.0276 0.794314C21.0916 0.587793 21.1716 0.444816 21.2356 0.381271C21.3316 0.317726 21.4596 0.270067 21.6517 0.270067H22.6438C22.8198 0.270067 22.9159 0.365385 22.9159 0.540134C22.9159 0.587793 22.8999 0.651338 22.8839 0.730769C22.8839 0.730769 22.8518 0.85786 22.8198 0.969064L20.2434 9.13461C20.1794 9.35702 20.1154 9.46823 20.0034 9.54766C19.9394 9.6112 19.7954 9.65886 19.6193 9.65886H18.7072C18.4992 9.65886 18.4032 9.62709 18.2751 9.54766C18.1675 9.43441 18.1001 9.28938 18.0831 9.13461L16.4348 2.3194L14.7866 9.11873C14.7386 9.32525 14.6746 9.46823 14.5946 9.54766C14.4624 9.61913 14.3127 9.65217 14.1625 9.64298H13.2504ZM26.9325 9.92893C26.4044 9.92893 25.8123 9.86539 25.2842 9.73829C24.7561 9.6112 24.3401 9.46823 24.068 9.32525C23.9291 9.25889 23.8124 9.15407 23.732 9.02341C23.6885 8.93434 23.6666 8.83642 23.668 8.73746V8.19732C23.668 7.97492 23.748 7.8796 23.908 7.8796H24.1C24.1641 7.8796 24.2601 7.95903 24.3721 8.00669C24.7241 8.16555 25.1242 8.29264 25.5403 8.37207C25.9723 8.45151 26.4044 8.49916 26.8045 8.49916C27.4766 8.49916 28.0047 8.38796 28.3567 8.14967C28.7248 7.8796 28.9168 7.57776 28.9168 7.14883C28.9168 6.84699 28.8048 6.6087 28.6287 6.40217C28.4367 6.21154 28.0687 6.0209 27.5566 5.86204L26.0043 5.38545C25.2362 5.13127 24.6601 4.78177 24.3081 4.30518C23.9645 3.86402 23.7787 3.32184 23.78 2.76421C23.78 2.3194 23.876 1.93813 24.068 1.60452C24.2601 1.25502 24.5161 0.969064 24.8042 0.730769C25.1562 0.492475 25.5083 0.317726 25.9403 0.190635C26.3564 0.063545 26.8045 0 27.2845 0C27.5086 0 27.7486 0.0158866 28.0047 0.0476592C28.2287 0.0794318 28.4527 0.12709 28.6768 0.158863C28.9008 0.222408 29.0928 0.270067 29.2848 0.333612C29.4769 0.397157 29.6049 0.460702 29.7329 0.524247C29.8769 0.603679 29.989 0.683111 30.053 0.778428C30.117 0.873746 30.149 0.98495 30.149 1.12793V1.63629C30.149 1.8587 30.069 1.9699 29.9089 1.9699C29.8289 1.9699 29.6849 1.92224 29.4929 1.84281C28.9008 1.57274 28.2127 1.42977 27.4606 1.42977C26.8525 1.42977 26.4044 1.52508 26.0363 1.73161C25.7163 1.92224 25.5403 2.23997 25.5403 2.6689C25.5403 2.97074 25.6523 3.22492 25.8603 3.41555C26.0683 3.62207 26.4684 3.81271 27.0285 4.00335L28.5487 4.47993C29.3169 4.70234 29.8609 5.05184 30.197 5.49666C30.517 5.92559 30.6771 6.41806 30.6771 6.97408C30.6771 7.4189 30.5811 7.83194 30.405 8.19732C30.213 8.54682 29.957 8.86455 29.6049 9.11873C29.3009 9.3888 28.9008 9.57943 28.4527 9.72241C28.0047 9.86539 27.4606 9.92893 26.9325 9.92893ZM28.9328 15.0761C25.4282 17.6338 20.3395 19 16.0028 19C9.84182 19 4.32096 16.7441 0.144312 13.0109C-0.19174 12.709 0.112307 12.3119 0.512369 12.5502C5.02507 15.1396 10.5779 16.7124 16.3388 16.7124C20.2274 16.7124 24.5001 15.9181 28.4207 14.2341C29.0128 13.9958 29.5089 14.6472 28.9328 15.0761ZM30.405 13.4398C29.941 12.852 27.4286 13.1538 26.2924 13.2809C25.9563 13.3286 25.9083 13.0268 26.2124 12.8043C28.2127 11.4222 31.5092 11.8512 31.8773 12.2801C32.2613 12.7567 31.7812 16.0293 29.9089 17.5861C29.6049 17.8244 29.3329 17.6973 29.4609 17.4114C29.8929 16.3311 30.8371 13.9799 30.405 13.4398Z"}],
             name: "AWS",
             viewBox: "0 0 32 19",
-            isSelected : false
+            isSelected : false,
+            isDisabled: null,
         },
         {
             paths: [{fill:"black", path:"M25.936 7.69891C26.7787 7.75351 27.5733 7.96646 28.32 8.33775C29.056 8.68721 29.696 9.17317 30.24 9.79563C30.784 10.3963 31.216 11.0842 31.536 11.8596C31.8453 12.6349 32 13.4594 32 14.3331C32 15.2504 31.8293 16.1131 31.488 16.9212C31.1467 17.7293 30.6773 18.4337 30.08 19.0343C29.4933 19.6349 28.8 20.11 28 20.4594C27.232 20.8198 26.4 21 25.504 21H8C6.90133 21 5.86667 20.7761 4.896 20.3284C3.92533 19.9025 3.07733 19.3237 2.352 18.592C1.62667 17.8495 1.056 16.9813 0.64 15.9875C0.213333 14.9938 0 13.9345 0 12.8097C0 11.9142 0.138667 11.0515 0.416 10.2215C0.672 9.4025 1.06667 8.64899 1.6 7.961C2.06933 7.27301 2.64533 6.67239 3.328 6.15913C4.01067 5.64587 4.768 5.25273 5.6 4.97972C5.99467 4.83775 6.37333 4.76677 6.736 4.76677C7.10933 4.69033 7.49333 4.64119 7.888 4.61934H7.904C8.36267 3.8986 8.90133 3.25429 9.52 2.68643C10.1067 2.11856 10.7733 1.63261 11.52 1.22855C12.2347 0.857254 12.992 0.551482 13.792 0.311233C14.592 0.103744 15.4133 0 16.256 0C17.3867 0 18.4747 0.191107 19.52 0.573323C20.5653 0.955538 21.5253 1.48518 22.4 2.16225C23.2533 2.83931 23.984 3.64743 24.592 4.58658C25.2107 5.53666 25.6587 6.5741 25.936 7.69891ZM16.256 2.04758C15.072 2.04758 13.952 2.29875 12.896 2.80109C11.8293 3.29251 10.9227 4.00234 10.176 4.93058C10.5707 5.03978 10.9493 5.17629 11.312 5.34009C11.664 5.5039 12.016 5.69501 12.368 5.91342L18.736 9.81201L22.4 8.23947C22.624 8.14119 22.8587 8.04836 23.104 7.961C23.3493 7.88455 23.6053 7.81903 23.872 7.76443C23.616 6.91264 23.2373 6.13729 22.736 5.43838C22.2347 4.73947 21.648 4.13885 20.976 3.63651C20.3253 3.13417 19.5893 2.74649 18.768 2.47348C17.9893 2.18955 17.152 2.04758 16.256 2.04758ZM3.2 16.4953L16.432 10.7949L11.328 7.64977C10.8053 7.33307 10.2613 7.08736 9.696 6.91264C9.09867 6.74883 8.50667 6.66693 7.92 6.66693C7.10933 6.66693 6.336 6.83073 5.6 7.15835C4.896 7.48596 4.27733 7.92824 3.744 8.48518C3.21067 9.05304 2.784 9.70827 2.464 10.4509C2.15467 11.1934 2 11.9797 2 12.8097C2 13.454 2.10667 14.0983 2.32 14.7426C2.52267 15.3978 2.816 15.9821 3.2 16.4953ZM25.504 18.9524C26.0053 18.9524 26.4853 18.8651 26.944 18.6903C27.4027 18.5374 27.8293 18.3081 28.224 18.0023L18.576 12.1381L4.848 18.0187C5.31733 18.3136 5.81867 18.5374 6.352 18.6903C6.88533 18.8651 7.43467 18.9524 8 18.9524M29.52 16.4134C29.84 15.7473 30 15.0538 30 14.3331C30 13.6342 29.8667 12.9953 29.6 12.4165C29.344 11.8487 28.9973 11.3627 28.56 10.9587C28.112 10.5546 27.5947 10.2434 27.008 10.025C26.4107 9.79563 25.7813 9.68097 25.12 9.68097C24.7467 9.68097 24.3733 9.73557 24 9.84477C23.6373 9.93214 23.28 10.0468 22.928 10.1888C22.576 10.3198 22.224 10.4672 21.872 10.631C21.5307 10.7949 21.1947 10.9532 20.864 11.1061L29.52 16.4134Z"}],
-            name: "OneDrive",
+            name: "One Drive",
             viewBox: "0 0 32 21",
-            isSelected : false
+            isSelected : false,
+            isDisabled: null,
         },
         {
             paths: [{fill:"black", path:"M27.6716 15.273L21.9596 11.0647L27.6716 6.85644C27.773 6.78163 27.8558 6.68181 27.9129 6.56553C27.9701 6.44924 28 6.31994 28 6.1887C28 6.05745 27.9701 5.92815 27.9129 5.81186C27.8558 5.69558 27.773 5.59576 27.6716 5.52095L21.0534 0.644944C20.9256 0.550571 20.7737 0.5 20.6182 0.5C20.4626 0.5 20.3107 0.550571 20.1829 0.644944L14 5.19995L7.8171 0.644944C7.68927 0.550571 7.53741 0.5 7.38183 0.5C7.22625 0.5 7.07439 0.550571 6.94656 0.644944L0.328387 5.52095C0.227051 5.59576 0.144248 5.69558 0.0870595 5.81186C0.0298714 5.92815 0 6.05745 0 6.1887C0 6.31994 0.0298714 6.44924 0.0870595 6.56553C0.144248 6.68181 0.227051 6.78163 0.328387 6.85644L6.04038 11.0647L0.328387 15.273C0.227051 15.3478 0.144248 15.4476 0.0870595 15.5639C0.0298714 15.6802 0 15.8095 0 15.9407C0 16.072 0.0298714 16.2013 0.0870595 16.3175C0.144248 16.4338 0.227051 16.5336 0.328387 16.6085L6.94656 21.4845C7.07439 21.5788 7.22625 21.6294 7.38183 21.6294C7.53741 21.6294 7.68927 21.5788 7.8171 21.4845L14 16.9295L20.1829 21.4845C20.3107 21.5788 20.4626 21.6294 20.6182 21.6294C20.7737 21.6294 20.9256 21.5788 21.0534 21.4845L27.6716 16.6085C27.773 16.5336 27.8558 16.4338 27.9129 16.3175C27.9701 16.2013 28 16.072 28 15.9407C28 15.8095 27.9701 15.6802 27.9129 15.5639C27.8558 15.4476 27.773 15.3478 27.6716 15.273ZM14 14.952L8.72328 11.0647L14 7.17744L19.2767 11.0647L14 14.952ZM20.6182 2.30143L25.8949 6.1887L20.6182 10.076L15.3415 6.1887L20.6182 2.30143ZM7.38183 2.30143L12.6585 6.1887L7.38183 10.076L2.10511 6.1887L7.38183 2.30143ZM7.38183 19.828L2.10511 15.9407L7.38183 12.0535L12.6585 15.9407L7.38183 19.828ZM20.6182 19.828L15.3415 15.9407L20.6182 12.0535L25.8949 15.9407L20.6182 19.828ZM17.668 22.9838C17.7252 23.0715 17.7655 23.1703 17.7868 23.2746C17.8081 23.3789 17.8099 23.4867 17.792 23.5917C17.7742 23.6967 17.7371 23.797 17.6828 23.8867C17.6285 23.9765 17.5582 24.054 17.4758 24.1148L14.4353 26.3551C14.3074 26.4494 14.1556 26.5 14 26.5C13.8444 26.5 13.6926 26.4494 13.5647 26.3551L10.5242 24.1148C10.3645 23.9893 10.257 23.8025 10.2245 23.5941C10.192 23.3857 10.237 23.172 10.3501 22.9983C10.4631 22.8246 10.6353 22.7046 10.8301 22.6637C11.0248 22.6229 11.2269 22.6643 11.3935 22.7793L14 24.704L16.6065 22.7847C16.7722 22.6618 16.977 22.6137 17.1759 22.651C17.3749 22.6883 17.5518 22.808 17.668 22.9838Z"}],
             name: "Dropbox",
             viewBox: "0 0 28 27",
-            isSelected : false
+            isSelected : false,
+            isDisabled: null,
         }
     ];
     @track outputChannels = [
@@ -196,6 +230,40 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             isSelected : false
         }
     ];
+
+
+    //CSV
+    @track showCSVPreview = false;
+    @track fetchedResults = [];
+    @track generatedCSVData;
+    @track isAdditionalInfo = false;
+
+    //PDF - DOC
+    @track generatePDF = false;
+    @track vfGeneratePageSRC;
+
+    //All files use
+    @track showFolderSelection = false;
+    @track fileName;
+    @track allFolders = [];
+    @track selectedFolder;
+
+    get openedTabName(){
+        return this.showCSVPreview ? 'CSV Preview' : 'Generate Document';
+    }
+
+    get documentTypesToShow(){
+        if(this.selectedTemplate){
+            return this.templateType == 'CSV Template' ? this.csvDocumentTypes : this.generalDocumentTypes;
+        }
+        this.csvDocumentTypes.forEach(option => option.isSelected = false);
+        this.generalDocumentTypes.forEach(option => option.isSelected = false);
+        return this.documentTypes;
+    }
+
+    get isOtherModelOpen(){
+        return this.showAllTemplates || this.showCSVPreview;
+    }
       
     get templateList(){
         return this.activeTemplates.map((template) =>{
@@ -203,6 +271,10 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
                 label:template.Template_Name__c, value:template.Id
             }
         });
+    }
+
+    get DocGeniusLogo(){
+        return docGeniusLogoSvg;
     }
 
     get updatedTemplates(){
@@ -213,6 +285,42 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
         }
         return searchedTemplates;
     }
+
+    get isEditDisabled(){
+        return this.selectedTemplate ? false : true;
+    }
+
+    get templateType(){
+        return this.allTemplates.find(t => t.Id == this.selectedTemplate)?.Template_Type__c || '';
+    }
+
+    get templateName(){
+        return this.allTemplates.find(t => t.Id == this.selectedTemplate)?.Template_Name__c || '';
+    }
+
+    get isCSVTemplate(){
+        return this.templateType=='CSV Template' ? true : false;
+    }
+
+    get selectedExtension(){
+        return this.documentTypes.find(dt => dt.isSelected == true)?.extension;
+    }
+
+    get selectedChannels(){
+        let channels = [];
+        this.internalStorageOptions.forEach(o=>{
+            o.isSelected ? channels.push(o.name): undefined;
+        })
+        this.externalStorageOptions.forEach(o=>{
+            o.isSelected ? channels.push(o.name): undefined;
+        })
+        this.outputChannels.forEach(o=>{
+            o.isSelected ? channels.push(o.name): undefined;
+        })
+
+        return channels;
+    }
+    
     connectedCallback(){
         try{
             this.showSpinner = true;
@@ -220,11 +328,12 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
                 console.log('Record id : ', this.recordId);
                 console.log('Object api : ', this.objectApiName);
                 this.fetchAllTemplates();
+                this.fetchAllIntegrationStatus();
+                this.fetchAllFolders();
             }, 10);
         }catch (error) {
-            console.log('Error in Connected Callback: ', error.stack);
-        }finally{
             this.showSpinner = false;
+            console.log('Error in Connected Callback: ', error.stack);
         }
         // this.test123 != "hello" ? this.navigateToComp(navigationComps.generateDocument , {test123:'hello', recordId:this.recordId}) : undefined;
         // console.log('test123 ::' , this.test123);
@@ -236,29 +345,82 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             this.showSpinner = true;
             const templates = await fetchTemplates({objName:this.objectApiName});
             if(templates){
-                this.allTemplates = templates.map((temp, index) =>{
-                    return{
+                this.allTemplates = templates.map((temp, index) => {
+                    const formattedDate = new Date(temp.LastModifiedDate).toLocaleDateString("en-US");
+                    
+                    return {
                         ...temp,
-                        index: +index+1
-                    }
-                })
+                        LastModifiedDate: formattedDate,
+                        index: +index + 1
+                    };
+                });
                 this.activeTemplates = this.allTemplates.filter(temp => temp.Template_Status__c == true);
             }
-        }catch (error) {
-            console.log('Error in fetchAllTemplates', error.stack);
-        }finally{
+            console.log('spinner of after  processing');
+            // this.fetchAllIntegrationStatus();
             this.showSpinner = false;
+        }catch (error) {
+            this.showSpinner = false;
+            console.log('Error in fetchAllTemplates', error.stack);
         }
+    }
+
+    fetchAllIntegrationStatus(){
+        try{
+            this.showSpinner = true;
+            getIntegrationStatus()
+            .then((data)=>{
+                this.template.querySelectorAll('.e-storage-options').forEach(option =>{
+                    this.externalStorageOptions.find( o => o.name== 'Google Drive').isDisabled = !data.isGoogleDriveIntegrated;
+                    this.externalStorageOptions.find( o => o.name== 'AWS').isDisabled = !data.isAWSIntegrated;
+                    this.externalStorageOptions.find( o => o.name== 'Dropbox').isDisabled = !data.isDropBoxIntegrated;
+                    this.externalStorageOptions.find( o => o.name== 'One Drive').isDisabled = !data.isOneDriveIntegrated;
+                    // if(option.dataset.item=='Google Drive' && !data.isGoogleDriveIntegrated){
+                    //     option.classList.add('disabled-item');
+                    // }
+                    // if(option.dataset.item=='AWS' && !data.isAWSIntegrated){
+                    //     option.classList.add('disabled-item');
+                    // }
+                    // if(option.dataset.item=='Dropbox' && !data.isDropBoxIntegrated){
+                    //     option.classList.add('disabled-item');
+                    // }
+                    // if(option.dataset.item=='One Drive' && !data.isOneDriveIntegrated){
+                    //     option.classList.add('disabled-item');
+                    // }
+                })
+                this.showSpinner = false;
+            })
+            .catch((error)=>{
+                this.showSpinner = false;
+                console.log('Error fetching integration status', error);
+            })
+        }catch (error) {
+            this.showSpinner = false;
+            console.log('Error in fetchAllIntegrationStatus', error.stack);
+        }
+    }
+
+    fetchAllFolders(){
+        getFolders()
+        .then((data) => {
+            this.allFolders = data;
+            console.log('All Folders are :::: ', this.allFolders);
+            this.selectedFolder = this.allFolders[0].value;
+        })
     }
     renderedCallback() {
         try{
-            this.showSpinner = true;
             if(this.isInitialStyleLoaded) return;
             const STYLE = document.createElement('style');
             STYLE.innerHTML = `
-    
-                .slds-modal {
-                    position: absolute;
+                .slds-modal__content{
+                    border-radius: 0.5rem !important;
+                }
+                .uiModal--medium .modal-container {
+                    width: 100%;
+                    padding: 0 15%;
+                    min-width : unset;
+                    max-width : unset;
                 }
                 .body-div .slds-rich-text-editor__toolbar.slds-shrink-none {
                     background-color: white;
@@ -297,14 +459,31 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
                     border: 1px solid darkgray;
                     border-radius: 0.25rem;
                 }
+
+
+                @media (max-width: 1440px) {
+                    .uiModal--medium .modal-container {
+                        width: 100%;
+                        padding: 0 10%;
+                        min-width : unset;
+                        max-width : unset;
+                    }
+                }
+                @media (max-width: 1024px) {
+                    .uiModal--medium .modal-container {
+                        width: 100%;
+                        padding: 0 5%;
+                        min-width : unset;
+                        max-width : unset;
+                        margin : 0;
+                    }
+                }
             `;
     
             this.template.querySelector('.main-div').appendChild(STYLE);
             this.isInitialStyleLoaded = true;
         }catch (error) {
             console.log('Error in renderedCallback', error.stack);
-        }finally{
-            this.showSpinner = false;
         }
 
     }
@@ -313,17 +492,33 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
         try{
             this.showSpinner = true;
             let result = event.detail[0];
-            if(result == "a09H4000001FyA0IAK"){
+            if(result == "a09H4000001G1N7IAK"){
                 this.showAllTemplates = true;
                 return;
             }
             if(!result){
-                this.isEditDisabled = true;
+                // this.isEditDisabled = true;
                 this.selectedTemplate = null;
             }else{
-                this.isEditDisabled = false;
+                // this.isEditDisabled = false;
                 this.selectedTemplate = result;
-                console.log('Selected template :: ' + this.selectedTemplate);
+                // this.templateType = this.allTemplates.find(t => t.Id == this.selectedTemplate).Template_Type__c;
+                // console.log('Selected template :: ' + this.selectedTemplate);
+                // console.log('Selected template Type ::' , this.templateType);
+                // console.log('Template Name ::', this.templateName);
+            }
+            this.fileName = this.templateName;
+            this.csvDocumentTypes.forEach(dt => dt.isSelected = false);
+            this.generalDocumentTypes.forEach(dt => dt.isSelected = false);
+            if (this.isCSVTemplate) {
+                this.csvDocumentTypes[0].isSelected = true;
+                this.internalStorageOptions.find(t => t.name == 'Notes & Attachment').isDisabled = true;
+                // this.template.querySelectorAll('.i-storage-options')[0].classList.add('disabled-item');
+                this.internalStorageOptions.forEach(o => o.isDisabled ? o.isSelected = false : undefined);
+            }else{
+                this.internalStorageOptions.find(t => t.name == 'Notes & Attachment').isDisabled = false;
+                // this.template.querySelectorAll('.i-storage-options')[0].classList.remove('disabled-item');
+                this.generalDocumentTypes[0].isSelected = true;
             }
         }catch(e){
             console.log('Error : ', e.stack);
@@ -332,18 +527,14 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
         }
     }
 
-    handleTemplateSearch(event){
-        this.templateSearchKey = event.target.value;
+    handleFileNameChange(event){
+        this.fileName = event.target.value;
+        console.log('File Name : ', this.fileName);
     }
 
-    handleTemplateSelection(event){
-        this.selectedTemplate = event.currentTarget.dataset.value;
-        console.log('Selected template :: ' + this.selectedTemplate);
-        this.handleEditClick();
-    }
-
-    backToActiveTemplate(){
-        this.showAllTemplates = false;
+    handleAdditionalInfo(event){
+        this.isAdditionalInfo = event.target.checked;
+        console.log('isAdditionalInfo set to ', this.isAdditionalInfo);
     }
 
 
@@ -351,21 +542,20 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
     handleEditClick() {
         try{
             this.showSpinner = true;
-            console.log('temp Id:', this.selectedTemplate);
-            let templateType = this.allTemplates.find(t => t.Id == this.selectedTemplate).Template_Type__c;
-            console.log('selected Template Type: ' + templateType);
+            // console.log('temp Id:', this.selectedTemplate);
+            console.log('selected Template Type: ' + this.templateType);
             var paramToPass = {
                 templateId : this.selectedTemplate,
                 objectName : this.objectApiName,
             }
-            if(templateType === 'Simple Template'){
+            if(this.templateType === 'Simple Template'){
                 console.log('Navigating to simple template....... ' + this.selectedTemplate);
                 this.navigateToComp(navigationComps.simpleTemplateBuilder, paramToPass);
                 // };
-            }else if(templateType === 'CSV Template'){
+            }else if(this.templateType === 'CSV Template'){
                 console.log('Navigating to CSV template....... ');
                 this.navigateToComp(navigationComps.csvTemplateBuilder, paramToPass);
-            }else if(templateType === 'Drag&Drop Template'){
+            }else if(this.templateType === 'Drag&Drop Template'){
                 console.log('Navigating to Drag&Drop template....... ');
                 this.navigateToComp(navigationComps.dNdTemplateBuilder, paramToPass);
             }
@@ -375,42 +565,11 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             this.showSpinner = false;
         }
     }
-    handleOptionSelection(event){
-        try {
-            this.showSpinner = true;
-            let section = event.currentTarget.dataset.section;
-            let option = event.currentTarget.dataset.item;
-            let index = event.currentTarget.dataset.index;
-            if(section=="type"){
-                this.documentTypes[index].isSelected = !this.documentTypes[index].isSelected;
-            }else if(section=='iStorage'){
-                this.internalStorageOptions[index].isSelected = !this.internalStorageOptions[index].isSelected;
-            }else if(section=='eStorage'){
-                this.externalStorageOptions[index].isSelected = !this.externalStorageOptions[index].isSelected;
-            }else if(section=='output'){
-                this.outputChannels[index].isSelected = !this.outputChannels[index].isSelected;
-                if(option=="Email"){
-                    this.showEmailSection= this.outputChannels[index].isSelected
-                    if(!this.showEmailSection){
-                        this.showCC=false;
-                        this.showBCC=false;
-                    }
-                }
-            }
-        } catch (e) {
-            console.log('Error in option selection  ', e.stack);
-        }finally{
-            this.showSpinner = false;
-        }
-    }
-
-
     //Email Section
     toggleCC(event){
         try {
-            this.showSpinner = true
+            this.showSpinner = true;
             this.showCC = !this.showCC;
-            this.showCC ? event.target.classList.add('not-display-div') : undefined;
         } catch (e) {
             console.log('error toggle cc', e.stack);
         }finally{
@@ -421,7 +580,6 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
         try {
             this.showSpinner = true;
             this.showBCC = !this.showBCC;
-            this.showBCC ? event.target.classList.add('not-display-div') : undefined;
         } catch (e) {
             console.log('error toggle bcc', e.stack);
         }finally{
@@ -432,11 +590,12 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
     handleToEmailChange(event){
         try {
             this.showSpinner = true;
-            const emailValidator = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
             let emailString = event.target.value.trim();
             let enteredChar = event.key;
             let typeOfEmail = event.target.dataset.type;
-            if(enteredChar == ',' || enteredChar == 'Enter' || enteredChar == ' ' || enteredChar == 'Tab'){
+            console.log('Entered Character is:: ', enteredChar);
+            if(enteredChar == ',' || enteredChar == 'Enter' || enteredChar == ' ' || enteredChar == 'Tab'  || !enteredChar){
+                const emailValidator = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
                 for(let email of emailString.toLowerCase().replaceAll(' ', ',').split(',')){
                     if(email){
                         if(emailValidator.test(email)){
@@ -503,15 +662,7 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             let typeOfEmail = event.currentTarget.dataset.type;
             if(typeOfEmail == "to"){
                 this.toEmails.splice(index, 1);
-                if(this.toEmails.length <1){
-                    this.template.querySelector(".to-input").classList.add("input-error-border");
-                    this.template.querySelector(".to-error-div").innerHTML = 'There must be at least one recipient..';
-                    this.template.querySelector(".to-error-div").classList.remove("not-display-div");
-                }else{
-                    this.template.querySelector(".to-input").classList.remove("input-error-border");
-                    this.template.querySelector(".to-error-div").innerHTML = '';
-                    this.template.querySelector(".to-error-div").classList.add("not-display-div");
-                }
+                this.validateToEmails();
             }
             typeOfEmail == "cc" ? this.ccEmails.splice(index, 1) : undefined;
             typeOfEmail == "bcc" ? this.bccEmails.splice(index, 1) : undefined;        
@@ -519,6 +670,18 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
             console.log('Error in email change', error.stack);
         }finally{
             this.showSpinner = false;
+        }
+    }
+
+    validateToEmails(){
+        if(this.toEmails.length <1){
+            this.template.querySelector(".to-input").classList.add("input-error-border");
+            this.template.querySelector(".to-error-div").innerHTML = 'There must be at least one recipient..';
+            this.template.querySelector(".to-error-div").classList.remove("not-display-div");
+        }else{
+            this.template.querySelector(".to-input").classList.remove("input-error-border");
+            this.template.querySelector(".to-error-div").innerHTML = '';
+            this.template.querySelector(".to-error-div").classList.add("not-display-div");
         }
     }
 
@@ -562,6 +725,434 @@ export default class GenerateDocument extends NavigationMixin(LightningElement) 
         }
     }
 
+    //Used for list of all the templates screen
+
+    handleOptionSelection(event){
+        try {
+            this.showSpinner = true;
+            let section = event.currentTarget.dataset.section;
+            let option = event.currentTarget.dataset.item;
+            let index = event.currentTarget.dataset.index;
+            if(section=="type"){
+                if(!this.selectedTemplate){
+                    return;
+                }
+                // !this.csvDocumentTypes[index].isSelected || !this.generalDocumentTypes[index].isSelected ? this.documentTypes.forEach(dt => dt.isSelected = false) : undefined;
+                if(this.isCSVTemplate){
+                    !this.csvDocumentTypes[index].isSelected ? this.csvDocumentTypes.forEach(dt => dt.isSelected = false) : undefined;
+                    this.csvDocumentTypes[index].isSelected = true;
+                }else{
+                    !this.generalDocumentTypes[index].isSelected ? this.generalDocumentTypes.forEach(dt => dt.isSelected = false) : undefined;
+                    this.generalDocumentTypes[index].isSelected = true;
+                }
+            }else if(section=='iStorage'){
+                !this.internalStorageOptions[index].isDisabled ? this.internalStorageOptions[index].isSelected = !this.internalStorageOptions[index].isSelected : undefined;
+                if(this.internalStorageOptions[index].name=='Documents'){
+                    this.showFolderSelection = this.internalStorageOptions[index].isSelected;
+                }
+            }else if(section=='eStorage'){
+                !this.externalStorageOptions[index].isDisabled ? this.externalStorageOptions[index].isSelected = !this.externalStorageOptions[index].isSelected : undefined;
+            }else if(section=='output'){
+                this.outputChannels[index].isSelected = !this.outputChannels[index].isSelected;
+                if(option=="Email"){
+                    this.showEmailSection= this.outputChannels[index].isSelected;
+                    if(this.showEmailSection){
+                        setTimeout(()=>{
+                            this.ccEmails.length>0 ? this.showCC=true : this.showCC= false;
+                            this.bccEmails.length>0 ? this.showBCC=true : this.showBCC = false;
+                            let mainDiv = this.template.querySelector('.main-container');
+                            mainDiv.scrollTo({
+                                top: mainDiv.scrollHeight,
+                                left: 0,
+                                behavior: "smooth",
+                              });
+                        }, 100)
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('Error in option selection  ', e.stack);
+        }finally{
+            this.showSpinner = false;
+        }
+    }
+
+
+    handleTemplateSearch(event){
+        this.templateSearchKey = event.target.value;
+    }
+
+    handleTemplateSelection(event){
+        this.selectedTemplate = event.currentTarget.dataset.value;
+        console.log('Selected template :: ' + this.selectedTemplate);
+        this.handleEditClick();
+    }
+
+    backToActiveTemplate(){
+        this.showAllTemplates = false;
+    }
+
+    //Bottom Button Controls
+
+    handleClose(){
+        this.dispatchEvent(new CloseActionScreenEvent());
+    }
+
+    handlePreview(){
+        if(this.templateType == 'CSV Template'){
+        //     var paramToPass = {
+        //         templateId : this.selectedTemplate,
+        //         objectName : this.objectApiName
+        //     }
+        //     this.navigateToComp(navigationComps.previewCSV, paramToPass);
+        this.showCSVPreview = true;
+        }
+    }
+
+    async handleGenerate(){
+        try {
+            this.showSpinner = true;
+            // console.log('Show Spinner ', this.showSpinner);
+            if(this.selectedChannels.length < 1){
+                this.showToast('error', 'Something Went Wrong!', 'Please select at least 1 storage or output channel.', 5000);
+                return;
+            }
+            if(this.showEmailSection && this.toEmails.length < 1){
+                this.validateToEmails();
+                this.showToast('error', 'Something Went Wrong!', 'Please select at least one recipient to send email.', 5000);
+                return;
+            }
+            if(this.selectedChannels.includes('Documents') && !this.selectedFolder){
+                console.log('In Documents');
+                this.showSpinner = false;
+                this.showToast('error', 'Something Went Wrong!', 'Please select folder to save document.', 5000);
+                // this.showFolderSelection = true;
+                // setTimeout(()=>{
+                //     this.showFolderSelection = false;
+                // }, 5000);
+                return;
+            }
+            if(this.templateType == 'CSV Template'){
+                this.handleGenerateCSVData();
+            }
+            if(this.templateType == 'Simple Template'){
+                var paraData2 = {
+                    'templateId' : this.selectedTemplate,
+                    'Object_API_Name__c' : this.objectApiName,
+                    'recordId' : this.recordId,
+                    'docType' : 'PDF',
+                    'useMode' : 'return'
+                }
+                
+                var paraDataStringify2 = JSON.stringify(paraData2);
+                this.vfGeneratePageSRC = '/apex/DocGeneratePage?paraData=' + paraDataStringify2;
+                this.generatePDF = true;
+            }
+            this.showSpinner = false;
+        } catch (error) {
+            this.showSpinner = false;
+            console.log('Error in Generation', e.message);
+        }
+    }
+
+    generateCSVDocument(){
+        try{
+            this.showSpinner = true;
+
+            if(this.selectedChannels.includes("Download")){
+                console.log('Download CSV Called, spinner is ::: ', this.showSpinner);
+                this.downloadCSV(this.generatedCSVData);
+            }
+            if(this.selectedChannels.includes('Notes & Attachments') || this.selectedChannels.includes('Files') || this.selectedChannels.includes('Chatter') || this.selectedChannels.includes('Documents') || this.selectedChannels.includes('Email')){
+                console.log('EmailBody :::' , this.emailBody);
+                // this.showSpinner = false;
+                // return;
+                let fileDataWrapper = {
+                    fileData : this.generatedCSVData,
+                    templateId : this.recordId,
+                    fileName : this.fileName,
+                    extension : this.selectedExtension,
+                    folderId : this.selectedFolder,
+                    toEmails : this.toEmails,
+                    ccEmails : this.ccEmails,
+                    bccEmails : this.bccEmails,
+                    emailSubject: this.emailSubject,
+                    emailBody: this.emailBody, 
+                    // contentType : 'text/'+ this.selectedExtension.slice(1,),
+                    addToNotesAttachments : this.selectedChannels.includes('Notes & Attachments'),
+                    addToFiles : this.selectedChannels.includes('Files'),
+                    addToChatter : this.selectedChannels.includes('Chatter'),
+                    addToDocument : this.selectedChannels.includes('Documents'),
+                    sendEmail : this.selectedChannels.includes('Email'),
+                };
+                // console.log('File data wrapper ::', fileDataWrapper);
+                this.showSpinner = true;
+                storeFilesAndSendEmail({ saveDataWrapper : fileDataWrapper})
+                .then(()=>{
+                    console.log('saved data files successfully.');
+                    this.showSpinner =false;
+                    this.showToast('success','Everything worked!', 'Your document has been saved.', 5000);
+    
+                })
+                .catch((error)=>{
+                    console.log('Error in saving data :::', error.body.message);
+                    this.showSpinner =false;
+                    this.showToast('error', 'Something Went Wrong!', 'Your document could not be saved, please try again.', 5000);
+                })
+            }
+        }catch(e){
+            this.showSpinner =false;
+            console.log('Error in generateCSVDocument', e);
+        }
+    }
+
+    //CSV Preview-generate Methods
+    closeCSVPreview(event){
+        console.log('Called preview close');
+        this.showCSVPreview = false;
+    }
+
+    // closeCSVgenerate(event){
+    //     console.log('Called generate close');
+    //     this.showGenerateCSV = false;
+    // }
+
+    stopSpinner(){
+        console.log('Show Spinner stop', this.showSpinner);
+        this.showSpinner = false;
+    }
+
+    //Back to generate
+    backToGenerate(){
+        this.showAllTemplates = false;
+        // this.showGenerateCSV = false;
+        this.showCSVPreview = false;
+    }
+
+
+
+
+
+
+//-------------------------------------------------------CSV Generation Methods --------------------------------------------------------
+
+
+
+
+
+
+// to handle CSV Generation
+    async handleGenerateCSVData() {
+        console.log('In HandleGenerateCSV');
+        try {
+            const data = await getTemplateData({ templateId: this.selectedTemplate });
+            if(!data){
+                this.showToast('error', 'Something went wrong! ', 'No matching data found, Please Update the Template..', 5000);
+                return ;
+            }
+            this.showSpinner = true;
+            const [fieldNamesString, query, sessionId] = data.split(' <|QDG|> ');
+            const fieldNames = fieldNamesString.split(',');
+            // const totalRecordCount = parseInt(sessionId);
+            const generationCount = parseInt(query.split('LIMIT ')[1]);
+            if(this.selectedExtension == ".csv"){
+                let csvContent = '';
+
+                if (this.isAdditionalInfo) {
+                    const thisTemplate = this.allTemplates.find(opt => opt.Id == this.selectedTemplate);
+                    thisTemplate.Description__c = thisTemplate.Description__c ? thisTemplate.Description__c : 'No Description Available for this template';
+                    csvContent += ' , Name : ,"' + thisTemplate.Template_Name__c + '"\n'
+                        + ' , Description : ,"' + thisTemplate.Description__c + '"\n'
+                        + ' , Object Api Name : ,' + thisTemplate.Object_API_Name__c + '\n'
+                        + ' , CSV Creation Time : , ' + new Date().toLocaleString().replace(',', ' ') + '\n' + '\n';
+                }
+                csvContent += fieldNames.join(',') + '\n';
+
+                // console.log('Content of CSV :: ' , csvContent);
+                const newQuery = '/services/data/v59.0/query/?q=' + query.split('LIMIT')[0];
+                console.log('Query :: ' , newQuery);
+                console.log('Spinner is in query  fetch:::' , this.showSpinner);
+
+                const isSuccess = await this.fetchRecords(newQuery ,sessionId, generationCount);
+                console.log('Fetched records in main :: ' + this.fetchedResults.length);
+                if(isSuccess){
+                    if(this.fetchedResults.length == 0){
+                        this.showToast('warning', 'Oops! No matching records Found!', 'Uh Oh!, Try changing the Filter criteria!!');
+                    }else{
+                        for (const record of this.fetchedResults) {
+                            // const rowValues = fieldNames.map(fieldName => record[fieldName] ? `"${record[fieldName]}"` : '""');
+                            const rowValues = fieldNames.map(fieldName => {
+                                const value = this.getValueByKey(record, fieldName);
+                                return value ? `"${value}"` : '""';
+                            });
+                            
+                            csvContent += rowValues.join(',') + '\n';
+                        }
+                        this.generatedCSVData = csvContent;
+                    }
+                }
+            }else if(this.selectedExtension == '.xls'){
+                let xlsContent = '<table>';
+                xlsContent += '<style>';
+                xlsContent += 'table, th, td {';
+                xlsContent += '    border: 0.5px solid black;';
+                xlsContent += '    border-collapse: collapse;';
+                xlsContent += '}';          
+                xlsContent += '</style>';
+
+                if (this.isAdditionalInfo) {
+                    const thisTemplate = this.allTemplates.find(opt => opt.Id == this.selectedTemplate);
+                    thisTemplate.Description__c = thisTemplate.Description__c ? thisTemplate.Description__c : 'No Description Available for this template';
+                    xlsContent += '<tr> <td> </td> <th> Name : </th><td> ' + thisTemplate.Template_Name__c + '</td></tr>'
+                        + '<tr> <td> </td> <th> Description : </th><td> ' + thisTemplate.Description__c + '</td></tr>'
+                        + '<tr> <td></td> <th> Object Api Name : </th><td> ' + thisTemplate.Object_API_Name__c + '</td></tr>'
+                        + '<tr> <td> </td> <th> CSV Creation Time : </th><td> ' + new Date().toLocaleString().replace(',', ' ') + '</td></tr>' + '<tr></tr>';
+                }
+                xlsContent += '<tr> <th> ' + fieldNames.join('</th><th>') + '</th> </tr>'
+
+                const newQuery = '/services/data/v59.0/query/?q=' + query.split('LIMIT')[0];
+                console.log('Query :: ' , newQuery);
+
+                const isSuccess = await this.fetchRecords(newQuery ,sessionId, generationCount);
+                console.log('Fetched records in main :: ' + this.fetchedResults.length);
+                if(isSuccess){
+                    if(this.fetchedResults.length == 0){
+                        this.showToast('warning', 'Oops! No matching records Found!', 'Uh Oh!, Try changing the Filter criteria!!');
+                    }else{
+                        for (const record of this.fetchedResults) {
+                            const rowValues = fieldNames.map(fieldName => {
+                                const value = this.getValueByKey(record, fieldName);
+                                return value ? `${value}` : '';
+                            });
+                            
+                            xlsContent += '<tr> <td> ' + rowValues.join('</td><td>') + '</td> </tr> </br>';
+                        }
+                        xlsContent += '</table>';
+                        this.generatedCSVData = xlsContent;
+                    }
+                }
+            }
+            console.log('Show spinner after data gathering..' , this.showSpinner);
+
+            // this.showSpinner = false;
+            console.log('Generated Content ::' ,btoa(unescape(encodeURIComponent(this.generatedCSVData))));
+            this.generateCSVDocument();
+        } catch (err) {
+            console.log('error in here ,' , err.message);
+            this.showSpinner = false;
+            this.showToast('error', 'Oops! Something went wrong', 'Some error occurred, Please try again.', 5000);
+        }
+    }
+    getValueByKey(obj, key) {
+        return key.split('.').reduce((o, i) => (o ? o[i] : undefined), obj);
+    }
+// -=-=- Used to call the SF API repeatedly until no of records reaches to the limit -=-=-
+    async fetchRecords(queryURL, sessionId, limitOfRecords) {
+        try{
+            // console.log('Limit : ' + limitOfRecords);
+            // console.log('Query  : ' + encodeURI(queryURL));
+            const myHeaders = new Headers();
+            let bearerString = "Bearer " + sessionId;
+            myHeaders.append("Authorization", bearerString);
+
+            const requestOptions = {
+            method: "GET",
+            headers: myHeaders,
+            redirect: "follow"
+            };
+            // console.log('URL : ' +window.location.origin );
+            let domainURL = window.location.origin;
+            domainURL = domainURL.replace('lightning.force.com', 'my.salesforce.com');
+
+            const response = await fetch(encodeURI(domainURL+queryURL), requestOptions);
+            if (!response.ok) {
+                this.showToast('error', 'Oops! Something went wrong!' , 'There was an error connecting to the server, please try again.', 5000);
+                return false;
+            }
+            const result = await response.json();
+            let thisFetchedBatch = result.records;
+            this.fetchedResults.push(...thisFetchedBatch);
+            console.log('next record URL :: ' + result.nextRecordsUrl);
+            if(result.nextRecordsUrl && limitOfRecords > this.fetchedResults.length){
+                console.log('fetching more.');
+                await this.fetchRecords(result.nextRecordsUrl,sessionId, limitOfRecords);
+            }else if(limitOfRecords < this.fetchedResults.length){
+                console.log('Slicing records.');
+                this.fetchedResults = this.fetchedResults.slice(0, limitOfRecords);
+
+            }else{
+                console.log('Fetched records are ::: '+ this.fetchedResults.length);
+            }
+            return true;
+        } catch(error){
+            this.showToast('error', 'Sorry, The records could not be fetched!', 'We couldn\'t fetch the records, please try again..');
+            console.log('Error fetching records : ' + error.message);
+            return false;
+        }
+    }
+
+// -=-=- Used to download the Generated CSV in the local system -=-=-
+    downloadCSV(csvContent) {
+        this.showSpinner = true;
+        try{
+            this.fetchedResults = [];
+            console.log('In CSV Download!!');
+            if(!this.fileName){
+                let thisTemplate = this.allTemplates.find(opt => opt.Id == this.selectedTemplate);
+                this.fileName = thisTemplate.Template_Name__c;
+                // console.log('Updated the CSV Name to :: ' + this.fileName);
+            }
+            var element ;
+            if(this.selectedExtension == '.csv'){
+                element = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+            }else if(this.selectedExtension == '.xls'){
+                element = 'data:application/vnd.ms-excel,' + encodeURIComponent(csvContent);
+            }
+            let downloadElement = document.createElement('a');
+            downloadElement.href = element;
+            downloadElement.target = '_self';
+            console.log('What is file Name ???:: ' + this.fileName);
+            downloadElement.download = this.fileName+ this.selectedExtension;
+            document.body.appendChild(downloadElement);
+            downloadElement.click();
+            this.showSpinner = false;
+            this.showToast('success', 'Woohoo! Action performed!', 'Your CSV is Downloaded Successfully.', 5000 );
+        }catch(err){
+            this.showSpinner = false;
+            this.showToast('error', 'Oops! Something went wrong', 'We Couldn\'t generate CSV at the moment!, please try again..', 5000);
+            console.log('Error in Generating CSV!!' , err.message);
+        }
+    }
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------PDF / DOC Generation Methods --------------------------------------------------------
+    vfPageLoaded(event){
+        console.log('VF Page loaded !!!');
+        this.vfGeneratePageSRC = '';
+        event.preventDefault();
+
+    }
+
+
+// ------------------------------------------------------- Folder Selection Methods ----------------------------------------------------
+
+    handleFolderSelect(event){
+        this.selectedFolder = event.detail[0];
+        console.log('Selected folder is : ', this.selectedFolder);
+    }
+
+
+
+
+
+// --------------------------------------------------------General Use Methods ---------------------------------------------------------
     // -=-=- Used to Show The Toasts
     showToast(status, title, message, duration){
         this.showSpinner = false;

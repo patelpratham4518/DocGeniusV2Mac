@@ -9,5 +9,10 @@
         <target>lightning__RecordAction</target>
         <target>lightning__Tab</target>
     </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordAction">
+          <actionType>ScreenAction</actionType>
+        </targetConfig>
+    </targetConfigs>
 
 </LightningComponentBundle>

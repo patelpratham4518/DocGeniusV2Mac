@@ -8,8 +8,7 @@ import deleteTemplate from '@salesforce/apex/HomePageController.deleteTemplate';
 import { getObjectInfo, getPicklistValues } from 'lightning/uiObjectInfoApi';
 import Template_Object from '@salesforce/schema/Template__c';
 import Template_Type_FIELD from '@salesforce/schema/Template__c.Template_Type__c';
-import { setRefrenceDates } from './refrenceDateMethods.js'
-import {navigationComps, nameSpace} from 'c/utilityProperties';
+import {navigationComps, nameSpace} from 'c/globalProperties';
 
 export default class HomePage extends NavigationMixin(LightningElement) {
     @track isDisplayOption = false;
@@ -63,7 +62,7 @@ export default class HomePage extends NavigationMixin(LightningElement) {
         // {label : 'LAST YEAR', value : 'LAST_YEAR'},
     ]
 
-    refrenceDates = {
+    referenceDates = {
         todayDate : '',
         firstDayofThisWeek : '',
         lastDayofThisWeek : '',
@@ -123,14 +122,14 @@ export default class HomePage extends NavigationMixin(LightningElement) {
 
     connectedCallback(){
         try {
-            // Set refrence field to filter fuctionality...
-            // this.setRefrenceDates();
-            this.refrenceDates = setRefrenceDates();
+            // Set reference field to filter functionality...
+            // this.setReferenceDates();
+            this.referenceDates = this.setReferenceDates();
 
             // Get data from Backed...
             this.fetchTemplateRecords();
 
-            // storing static resouce in single array...
+            // storing static resource in single array...
             for(var key in this.imgSrc){
                 this.imgSrc[key] = docGeniusImgs + '/' + key + '.png';
             }
@@ -146,6 +145,49 @@ export default class HomePage extends NavigationMixin(LightningElement) {
             label: item.label,
             value: item.value
         }));
+    }
+
+    setReferenceDates(){
+        try {
+    
+            let todayDate = new Date();
+    
+            let firstDayofThisWeek = new Date(todayDate);
+            firstDayofThisWeek.setDate(todayDate.getDate() - todayDate.getDay());
+    
+            let lastDayofThisWeek = new Date(todayDate);
+            lastDayofThisWeek.setDate(todayDate.getDate() - todayDate.getDay() + 6);
+    
+            let lastDayOfPreviousWeek = new Date(todayDate);
+            lastDayOfPreviousWeek.setDate(todayDate.getDate() - todayDate.getDay() - 1);
+    
+            let firstDayofPreviousWeek = new Date(todayDate);
+            firstDayofPreviousWeek.setDate(todayDate.getDate() - todayDate.getDay() - 7);
+    
+            let firstDayofThisMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 2);
+            let lastDayofThisMonth = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 1);
+    
+            let lastDayOfPreviousMonth = new Date(todayDate);
+            lastDayOfPreviousMonth.setDate(todayDate.getMonth() - todayDate.getMonth());
+    
+            let firstDayofPreviousMonth = new Date(todayDate.getFullYear(), todayDate.getMonth() - 1, 2);
+    
+    
+            var referenceDates = {}
+            referenceDates.todayDate = todayDate.toISOString().split('T')[0];
+            referenceDates.firstDayofThisWeek = firstDayofThisWeek.toISOString().split('T')[0];
+            referenceDates.lastDayofThisWeek = lastDayofThisWeek.toISOString().split('T')[0];
+            referenceDates.lastDayOfPreviousWeek = lastDayOfPreviousWeek.toISOString().split('T')[0];
+            referenceDates.firstDayofPreviousWeek = firstDayofPreviousWeek.toISOString().split('T')[0];
+            referenceDates.firstDayofPreviousMonth = firstDayofPreviousMonth.toISOString().split('T')[0];
+            referenceDates.lastDayOfPreviousMonth = lastDayOfPreviousMonth.toISOString().split('T')[0];
+            referenceDates.firstDayofThisMonth = firstDayofThisMonth.toISOString().split('T')[0];
+            referenceDates.lastDayofThisMonth = lastDayofThisMonth.toISOString().split('T')[0];
+    
+            return referenceDates;
+        } catch (error) {
+            console.error('error in setReferenceDate : ', error.stack); 
+        }
     }
 
     // Fetch Template Records From Apex..
@@ -337,7 +379,7 @@ export default class HomePage extends NavigationMixin(LightningElement) {
         }
     }
 
-    refrencePillClick(event){
+    referencePillClick(event){
         try {
             var filterOpt = event.currentTarget.dataset.name;
             var selectedRefrenceTime = event.currentTarget.dataset.value;
@@ -346,27 +388,27 @@ export default class HomePage extends NavigationMixin(LightningElement) {
 
             this.setFromToDate(selectedRefrenceTime);
         } catch (error) {
-            console.error('error in refrencePillClick :  ', error.stack);
+            console.error('error in referencePillClick :  ', error.stack);
         }
     }
 
     setFromToDate(selectedRefrenceTime){
         try {
             if(selectedRefrenceTime == 'LAST_WEEK'){
-                this.filterOpts['fromDate'] = this.refrenceDates.firstDayofPreviousWeek;
-                this.filterOpts['toDate'] = this.refrenceDates.lastDayOfPreviousWeek;
+                this.filterOpts['fromDate'] = this.referenceDates.firstDayofPreviousWeek;
+                this.filterOpts['toDate'] = this.referenceDates.lastDayOfPreviousWeek;
             }
             else if(selectedRefrenceTime == 'THIS_WEEK'){
-                this.filterOpts['fromDate'] = this.refrenceDates.firstDayofThisWeek;
-                this.filterOpts['toDate'] = this.refrenceDates.todayDate;
+                this.filterOpts['fromDate'] = this.referenceDates.firstDayofThisWeek;
+                this.filterOpts['toDate'] = this.referenceDates.todayDate;
             }
             else if(selectedRefrenceTime == 'LAST_MONTH'){
-                this.filterOpts['fromDate'] = this.refrenceDates.firstDayofPreviousMonth;
-                this.filterOpts['toDate'] = this.refrenceDates.lastDayOfPreviousMonth;
+                this.filterOpts['fromDate'] = this.referenceDates.firstDayofPreviousMonth;
+                this.filterOpts['toDate'] = this.referenceDates.lastDayOfPreviousMonth;
             }
             else if(selectedRefrenceTime == 'THIS_MONTH'){
-                this.filterOpts['fromDate'] = this.refrenceDates.firstDayofThisMonth;
-                this.filterOpts['toDate'] = this.refrenceDates.todayDate;
+                this.filterOpts['fromDate'] = this.referenceDates.firstDayofThisMonth;
+                this.filterOpts['toDate'] = this.referenceDates.todayDate;
             }
             else{
                 delete this.filterOpts['fromDate'];
@@ -419,7 +461,7 @@ export default class HomePage extends NavigationMixin(LightningElement) {
         }
     }
 
-    applyFilter(event){
+    applyFilter(event, isClear){
         try {
 
             var isFilter = this.setErrorForRangeDate();
@@ -451,6 +493,9 @@ export default class HomePage extends NavigationMixin(LightningElement) {
 
                 // If There is No option available to filter after filtering... set "isFilterApplied" to false...
                 this.isFilterApplied = Object.keys(this.filterOpts).length == 0 ? false : true;
+
+                console.log('isClear : ', isClear);
+                !isClear && this.toggleFilterOptions();
             }
         } catch (error) {
             console.error('error in applyFilter : ', error.stack);
@@ -587,7 +632,7 @@ export default class HomePage extends NavigationMixin(LightningElement) {
         }
     }
 
-    clearFilterOpts(){
+    clearFilterOpts(event){
         try {
             // crear filerOpt object keys...
             var tempFilterOpts = JSON.parse(JSON.stringify(this.filterOpts))
@@ -623,11 +668,11 @@ export default class HomePage extends NavigationMixin(LightningElement) {
             // remove all obj pills...
             this.objPillToDisplay = null;
 
-            // Un-tick all refrence time selection as well as 'FROM' and 'TO' dates...
+            // Un-tick all reference time selection as well as 'FROM' and 'TO' dates...
             this.handleSetRangeDates();
 
             // apply filter after removing all options
-            this.applyFilter();
+            this.applyFilter(event, true);
             
             this.isFilterApplied = false;
         } catch (error) {
@@ -760,8 +805,9 @@ export default class HomePage extends NavigationMixin(LightningElement) {
                         console.log('result on deleteTemplate : ', result);
                         if(result == 'deleted'){
                             // Remove Template from TemplateList...
-                            this.filteredTemplateList = this.filteredTemplateList.filter(ele => ele.Id != this.deleteTemplateId);
-                            this.templateList = this.templateList.filter(ele => ele.Id != this.deleteTemplateId);
+                            this.filteredTemplateList = this.filteredTemplateList.filter(ele => { return ele.Id != this.deleteTemplateId});
+                            this.templateList = this.templateList.filter(ele => { return ele.Id != this.deleteTemplateId});
+                            this.displayedTemplateList = this.displayedTemplateList.filter(ele => {return ele.Id != this.deleteTemplateId});
                             
                             // Set Serial Number after Deleting...
                             this.filteredTemplateList = this.setSerialNumber(this.filteredTemplateList);

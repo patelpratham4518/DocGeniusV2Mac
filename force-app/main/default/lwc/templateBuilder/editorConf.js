@@ -1,6 +1,7 @@
-import {customeIcons} from 'c/utilityProperties';
+import {customeIcons} from 'c/globalProperties';
 var _self;
 var ListOfFielMappingKeys;
+var lastRelatedListCount = 0;
 export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
     try { 
       console.log('self : ', self.activeTabName);
@@ -49,10 +50,6 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
               return createPageSetupBtn(note, context)
             }
 
-            var pageBreakBtn = function(context){
-              return createPageBreakBtn(note, context);
-            }
-
             // Initalize SummerNote Editor...
             $(note.summerNote).summernote({
     
@@ -76,7 +73,6 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
                   ['custom_paragraphFormatting', ['ul', 'ol', 'paragraph', 'height']],
                   ['custom_style', ['style']],
                   ['custom_insert', ['table','link', 'picture', 'hr']],
-                  ['custom_pageBreak', ['pageBreak']],
                   ['custom_clearFormatting', ['truncate','clear']],
                   ['custom_view', ['codeview', 'help']],
                   ['custom_title', ['titleBtn']],
@@ -113,7 +109,6 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
                     titleBtn : createBuilderTitle,
                     truncate : truncateBtn,
                     pageSetup : pageSetupBtn,
-                    pageBreak : pageBreakBtn,
                 },
                 tabsize: 2,
                 disableResizeEditor: true,
@@ -162,7 +157,7 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
                     'unlink': customeIcons.unlink,
                     'magic': 'note-icon-magic',
                     'menuCheck': 'note-icon-menu-check',
-                    'minus': 'note-icon-minus',
+                    'minus': customeIcons.pageBreak,
                     'orderedlist': customeIcons.orderedlist,
                     'pencil': 'note-icon-pencil',
                     'picture': customeIcons.image2,
@@ -186,13 +181,18 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
                   },
 
                 callbacks: {
+                    onInit: function(){
+                        // Method to set CSS of HTML Elements Once Editor Load SuccessFully...
+                        setCSSAfterLoadEditor(note);
+                        _self.calculateRelatedListTable(note)
+                    },
                     onBeforeCommand: null,
                     onBlur: null,
                     onBlurCodeview: null,
                     onChange: function(){
                       // function(contents, context, $editable)
                         setFontResizerValue(note);
-                        
+                        _self.calculateRelatedListTable(note);
                     },
                     onChangeCodeview: null,
                     onDialogShown: null,
@@ -201,10 +201,6 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
                     onImageLinkInsert: null,
                     onImageUpload: null,
                     onImageUploadError: null,
-                    onInit: function(){
-                        // Method to set CSS of HTML Elements Once Editor Load SuccessFully...
-                        setCSSAfterLoadEditor(note);
-                    },
                     onKeydown: null,
                     onKeyup: null,
                     onMousedown: null,
@@ -212,32 +208,6 @@ export function initializeSummerNote(self, docGeniusLogoSvg, editorSelector){
                         setFontResizerValue(note);
                     },
                     onPaste: function(){
-
-                      // // Get the clipboard data from the paste event
-                      // var clipboardData = event.originalEvent.clipboardData || window.clipboardData
-
-                      // // Retrieve text and HTML content from the clipboard
-                      // var plainText = clipboardData.getData('text/plain');
-                      // console.log('plainText : ', plainText);
-                      // var htmlText = clipboardData.getData('text/html');
-                      // console.log('htmlText : ', htmlText);
-
-                      // // Regular expression to match patterns like {{#sometext}}
-                      // var regex = /\{\{#([^{}]+)\}\}/g;
-
-                      // var inputString = htmlText || plainText; 
-                      // var modifedString = null;
-                      // // Loop through matches
-                      // var match;
-                      // while ((match = regex.exec(inputString)) !== null) {
-                      //   modifedString = inputString.replace(match[0], `<b class="fieldKey" data-field="key">${match[0]}</b>`);   
-                      // }
-
-                      // if(modifedString){
-                      //     // event.preventDefault();
-                      //     // $(note.summerNote).summernote('editor.pasteHTML', modifedString);
-                      //     // $(note.summerNote).summernote('editor.afterCommand');
-                      // }
 
                     },
                     onScroll: null,
@@ -699,7 +669,7 @@ function colorPalette_CusBtn(className, infoOpt, defaultColor, PaletTitle, callB
   }
  }
 
-//  ==== ===== ======= ====== Page Setup Methods ==== ==== ==== ==== 
+//  ==== ===== ======= ====== Page Setup Methods -- START ==== ==== ==== ==== 
 function createPageSetupBtn(note, context){
   var ui = $.summernote.ui;
   var options = context.options;
@@ -719,49 +689,11 @@ function createPageSetupBtn(note, context){
       })
     ]).render();
 }
+//  ==== ===== ======= ====== Page Setup Methods -- END ==== ==== ==== ==== 
 
-//  ==== ===== ======= ====== Page Break Methods ==== ==== ==== ====
-function createPageBreakBtn(note, context){
-  var ui = $.summernote.ui;
-  var options = context.options;
-  var lang = options.langInfo;
-  lang.pageBreak = 'Page Break';
 
-  return ui.buttonGroup([
-    ui.button({
-      className : 'pageBreakBtn',
-      contents : customeIcons.pageBreak,
-      tooltip : 'Page Break',
-      click: function () {
-        insertPageBreak(note, context);
-      }
-    })
-  ]).render();
-}
 
- function insertPageBreak(note, context){
-    try {
-      console.log('getSelection().rangeCount : ', getSelection().rangeCount);
-      if (getSelection().rangeCount > 0) {
-        var el = getSelection().getRangeAt(0).commonAncestorContainer.parentNode;
-        if ($(el).hasClass('note-editable')) {
-          el = getSelection().getRangeAt(0).commonAncestorContainer;
-        }
-        if (!$(el).hasClass('page-break')) {
-          if ($(el).next('div.page-break').length < 1)
-            $('<div class="page-break"></div>').insertAfter(el);
-        }
-      } else {
-        if ($('.note-editable div').last().attr('class') !== 'page-break')
-          $('.note-editable').append('<div class="page-break"></div>');
-      }
-
-      // Launching this method to force Summernote sync it's content with the bound textarea element
-      context.invoke('editor.insertText','');
-    } catch (error) {
-      console.log(' error : ', error.stack);
-    }
- }
+//  ==== ===== ======= ====== Related List (Child Table) calculation method -- END ==== ==== ==== ==== 
 
  function createTruncateBtn(note, context){
     var ui = $.summernote.ui;

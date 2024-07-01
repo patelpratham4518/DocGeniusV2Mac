@@ -1,5 +1,6 @@
 <apex:page controller="DocPreviewController"  
-		   applyHtmlTag="false" showHeader="false" cache="false"  action="{!constructor}">
+		   applyHtmlTag="false" showHeader="false" cache="false" action="{!constructor}">
+           
     <html>
         <head>
             <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
@@ -11,9 +12,16 @@
                 .page-break {
                     display:block;
                     page-break-after:always;
+                    visibility: hidden !important;
                 }         
-                
                 /* **** ***** ****** Editor CSS -- START **** ***** ****** */
+                .note-editor.note-frame hr{
+                    page-break-after: always;
+                    margin: 0px !important;
+                    border-top: none !important;
+                    height: 0px !important;
+                    visibility: hidden !important;
+                }
                 .note-editor.note-frame, .note-editor.note-airframe{
                     padding-top: 0px !important;
                     border: none !important;
@@ -287,6 +295,14 @@
         <script type="text/javascript">
                 try {
 
+                        const content = document.querySelector('.content');
+                        const content_sub = document.querySelector('.content_sub');
+                        const pdf_content = document.getElementById('pdf_content');
+    
+                        const pageToSet = document.querySelector('[data-name="pageToSet"]');
+                        const pagePlus = document.querySelector('[data-name="pagePlus"]');
+                        const pageMinus = document.querySelector('[data-name="pageMinus"]');
+
                     var usedFrom = '{!usedFrom}';
                     if(usedFrom == 'Simple Template'){
 
@@ -336,14 +352,6 @@
                                 };
                             })
                         }
-    
-                        const content = document.querySelector('.content');
-                        const content_sub = document.querySelector('.content_sub');
-                        const pdf_content = document.getElementById('pdf_content');
-    
-                        const pageToSet = document.querySelector('[data-name="pageToSet"]');
-                        const pagePlus = document.querySelector('[data-name="pagePlus"]');
-                        const pageMinus = document.querySelector('[data-name="pageMinus"]');
     
                         var pdfPages = 1;
                         var currentPage = 1;              
