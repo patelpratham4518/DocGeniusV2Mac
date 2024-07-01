@@ -24,6 +24,7 @@ public with sharing class GoogleDocPreview {
                 modiFiedDocContent = DataMappingController.mappingObjFieldsData(modiFiedDocContent, recordId, objectApiName);
                 modiFiedDocContent = DataMappingController.mappingGeneralFieldData(modiFiedDocContent);
                 modiFiedDocContent = DataMappingController.mappingMergeTemplate(modiFiedDocContent, recordId, objectApiName);
+
                 Datetime endTimeFieldsmapping = Datetime.now();
                 System.debug('final time Fieldsmapping: ' + (endTimeFieldsmapping.getTime() - startTimeFieldsmapping.getTime()));
                 Datetime startTimeParseBodyContent = Datetime.now();
@@ -32,6 +33,10 @@ public with sharing class GoogleDocPreview {
                 Datetime endTimeParseBodyContent = Datetime.now();
                 System.debug('final time ParseBodyContent: ' + (endTimeParseBodyContent.getTime() - startTimeParseBodyContent.getTime()));
                 Datetime startTimeformatContentForBatchUpdate = Datetime.now();
+
+
+          
+
                 List<Object> requests = formatContentForBatchUpdate(bodyContentNew,bodyContentOriginal,recordId,objectApiName);
                 Datetime endTimeformatContentForBatchUpdate = Datetime.now();
                 System.debug('final time formatContentForBatchUpdate: ' + (endTimeformatContentForBatchUpdate.getTime() - startTimeformatContentForBatchUpdate.getTime()));
