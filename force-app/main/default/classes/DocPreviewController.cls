@@ -43,7 +43,7 @@ public with sharing class DocPreviewController {
                 pageSize = pageConfigs.Page_Size__c;
             }
             else if(usedFrom == 'Google Doc Template'){
-                // docPDFBase64 = EncodingUtil.base64Encode(GoogleDocPreview.doPreview(templateId, recordId,objectApiName));
+                docPDFBase64 = EncodingUtil.base64Encode(GoogleDocPreview.doPreview(templateId, recordId,objectApiName));
             }
         } catch (Exception e) {
             
