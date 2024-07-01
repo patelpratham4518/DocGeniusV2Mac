@@ -18,8 +18,13 @@ public with sharing class GoogleDocPreview {
                 modiFiedDocContent = DataMappingController.mappingObjFieldsData(modiFiedDocContent, recordId, objectApiName);
                 modiFiedDocContent = DataMappingController.mappingGeneralFieldData(modiFiedDocContent);
                 modiFiedDocContent = DataMappingController.mappingMergeTemplate(modiFiedDocContent, recordId, objectApiName);
-                List<Object> bodyContentOriginal = (List<Object>) ((Map<String,Object>)JSON.deserializeUntyped(JSON.serialize(((Map<String,Object>) JSON.deserializeUntyped(sourceDocContent)).get('body')))).get('content');
-                List<Object> bodyContentNew = (List<Object>) ((Map<String,Object>)JSON.deserializeUntyped(JSON.serialize(((Map<String,Object>) JSON.deserializeUntyped(modiFiedDocContent)).get('body')))).get('content');
+
+                Map<String, Object> sourceDocMap = (Map<String, Object>) JSON.deserializeUntyped(sourceDocContent);
+                List<Object> bodyContentOriginal = (List<Object>) ((Map<String, Object>) sourceDocMap.get('body')).get('content');
+          
+                Map<String, Object> modiFiedDocMap = (Map<String, Object>) JSON.deserializeUntyped(modiFiedDocContent);
+                List<Object> bodyContentNew = (List<Object>) ((Map<String, Object>) modiFiedDocMap.get('body')).get('content');
+          
                 List<Object> requests = formatContentForBatchUpdate(bodyContentNew,bodyContentOriginal,recordId,objectApiName);
                 updateGoogleDoc(newGoogleDocId, requests);
                 pdfBlob = getPDF(newGoogleDocId);
