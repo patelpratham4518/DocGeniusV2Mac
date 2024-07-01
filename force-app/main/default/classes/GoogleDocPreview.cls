@@ -28,14 +28,18 @@ public with sharing class GoogleDocPreview {
                 Datetime endTimeFieldsmapping = Datetime.now();
                 System.debug('final time Fieldsmapping: ' + (endTimeFieldsmapping.getTime() - startTimeFieldsmapping.getTime()));
                 Datetime startTimeParseBodyContent = Datetime.now();
-                List<Object> bodyContentOriginal = (List<Object>) ((Map<String,Object>)JSON.deserializeUntyped(JSON.serialize(((Map<String,Object>) JSON.deserializeUntyped(sourceDocContent)).get('body')))).get('content');
-                List<Object> bodyContentNew = (List<Object>) ((Map<String,Object>)JSON.deserializeUntyped(JSON.serialize(((Map<String,Object>) JSON.deserializeUntyped(modiFiedDocContent)).get('body')))).get('content');
+                // Deserialize the source document content and extract the body content
+                Map<String, Object> sourceDocMap = (Map<String, Object>) JSON.deserializeUntyped(sourceDocContent);
+                List<Object> bodyContentOriginal = (List<Object>) ((Map<String, Object>) sourceDocMap.get('body')).get('content');
+
+                // Deserialize the modified document content and extract the body content
+                Map<String, Object> modiFiedDocMap = (Map<String, Object>) JSON.deserializeUntyped(modiFiedDocContent);
+                List<Object> bodyContentNew = (List<Object>) ((Map<String, Object>) modiFiedDocMap.get('body')).get('content');
+                
                 Datetime endTimeParseBodyContent = Datetime.now();
                 System.debug('final time ParseBodyContent: ' + (endTimeParseBodyContent.getTime() - startTimeParseBodyContent.getTime()));
                 Datetime startTimeformatContentForBatchUpdate = Datetime.now();
 
-
-          
 
                 List<Object> requests = formatContentForBatchUpdate(bodyContentNew,bodyContentOriginal,recordId,objectApiName);
                 Datetime endTimeformatContentForBatchUpdate = Datetime.now();
