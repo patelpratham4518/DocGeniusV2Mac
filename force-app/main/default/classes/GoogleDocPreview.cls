@@ -182,6 +182,10 @@ public with sharing class GoogleDocPreview {
                                     tableOffset += newText.length();
                                     currentTableOffset = tableOffset;
                                     requests.add(replaceAllTextRequest);
+                                }else {
+                                    tableOffset -= originalText.length();
+                                    tableOffset += newText.length();
+                                    currentTableOffset = tableOffset;                                    
                                 }
                             }
                         }
