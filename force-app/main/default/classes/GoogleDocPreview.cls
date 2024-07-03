@@ -2,32 +2,22 @@ public with sharing class GoogleDocPreview {
     public static AuthProviderSettings__c authProvider = AuthProviderSettings__c.getInstance();
     public static Integer limitOfChildRecords = 50;
     public static Integer limitOfChildTables = 10;
-   
+    public GoogleDocPreview() {
+
+    }
     @AuraEnabled
     public static Blob doPreview(String templateId,String recordId,String objectApiName){
-        Datetime startTimedoPreview = Datetime.now();
         System.debug('Preview called');
         Blob pdfBlob;
         try {
             String googleDocId = [SELECT Google_Doc_Template_Id__c FROM Template_Data__c WHERE Template__c=:templateId].Google_Doc_Template_Id__c;
-            Datetime startTimecopyGoogleDoc = Datetime.now();
             String newGoogleDocId = copyGoogleDoc(googleDocId);
-            Datetime endTimecopyGoogleDoc = Datetime.now();
-            System.debug('final time copyGoogleDoc: ' + (endTimecopyGoogleDoc.getTime() - startTimecopyGoogleDoc.getTime()));
             try {
-                Datetime startTimegetDocument = Datetime.now();
                 String sourceDocContent = getDocument(newGoogleDocId);
-                Datetime endTimegetDocument = Datetime.now();
-                System.debug('final time getDocument: ' + (endTimegetDocument.getTime() - startTimegetDocument.getTime()));
                 String modiFiedDocContent = sourceDocContent;
-                Datetime startTimeFieldsmapping = Datetime.now();
                 modiFiedDocContent = DataMappingController.mappingObjFieldsData(modiFiedDocContent, recordId, objectApiName);
                 modiFiedDocContent = DataMappingController.mappingGeneralFieldData(modiFiedDocContent);
                 modiFiedDocContent = DataMappingController.mappingMergeTemplate(modiFiedDocContent, recordId, objectApiName);
-
-                Datetime endTimeFieldsmapping = Datetime.now();
-                System.debug('final time Fieldsmapping: ' + (endTimeFieldsmapping.getTime() - startTimeFieldsmapping.getTime()));
-                Datetime startTimeParseBodyContent = Datetime.now();
                 // Deserialize the source document content and extract the body content
                 Map<String, Object> sourceDocMap = (Map<String, Object>) JSON.deserializeUntyped(sourceDocContent);
                 List<Object> bodyContentOriginal = (List<Object>) ((Map<String, Object>) sourceDocMap.get('body')).get('content');
@@ -35,37 +25,16 @@ public with sharing class GoogleDocPreview {
                 // Deserialize the modified document content and extract the body content
                 Map<String, Object> modiFiedDocMap = (Map<String, Object>) JSON.deserializeUntyped(modiFiedDocContent);
                 List<Object> bodyContentNew = (List<Object>) ((Map<String, Object>) modiFiedDocMap.get('body')).get('content');
-                
-                Datetime endTimeParseBodyContent = Datetime.now();
-                System.debug('final time ParseBodyContent: ' + (endTimeParseBodyContent.getTime() - startTimeParseBodyContent.getTime()));
-                Datetime startTimeformatContentForBatchUpdate = Datetime.now();
-
-
+                               
                 List<Object> requests = formatContentForBatchUpdate(bodyContentNew,bodyContentOriginal,recordId,objectApiName);
-                Datetime endTimeformatContentForBatchUpdate = Datetime.now();
-                System.debug('final time formatContentForBatchUpdate: ' + (endTimeformatContentForBatchUpdate.getTime() - startTimeformatContentForBatchUpdate.getTime()));
-                Datetime startTimeupdateGoogleDoc = Datetime.now();
                 updateGoogleDoc(newGoogleDocId, requests);
-                Datetime endTimeupdateGoogleDoc = Datetime.now();
-                System.debug('final time updateGoogleDoc: ' + (endTimeupdateGoogleDoc.getTime() - startTimeupdateGoogleDoc.getTime()));
-                Datetime startTimegetPDF = Datetime.now();
                 pdfBlob = getPDF(newGoogleDocId);
-                Datetime endTimegetPDF = Datetime.now();
-                System.debug('final time getPDF: ' + (endTimegetPDF.getTime() - startTimegetPDF.getTime()));
             } catch (Exception e) {
                 System.debug('Error In doPreview while between copy and delete ==> '+e.getMessage());
             } finally {
-                Datetime startTimedeleteGoogleDoc = Datetime.now();
                 Boolean googleDocDeleted = deleteGoogleDoc(newGoogleDocId);
-                Datetime endTimedeleteGoogleDoc = Datetime.now();
-                System.debug('final time deleteGoogleDoc: ' + (endTimedeleteGoogleDoc.getTime() - startTimedeleteGoogleDoc.getTime()));
                 System.debug('Result of Google Doc Deleted ==>'+googleDocDeleted);
-                Datetime startTimeupsertauthProvider = Datetime.now();
                 upsert authProvider;
-                Datetime endTimeupsertauthProvider = Datetime.now();
-                System.debug('final time upsertauthProvider: ' + (endTimeupsertauthProvider.getTime() - startTimeupsertauthProvider.getTime()));
-                Datetime endTimedoPreview = Datetime.now();
-                System.debug('final time doPreview: ' + (endTimedoPreview.getTime() - startTimedoPreview.getTime()));
             }
             return pdfBlob;
         } catch (Exception e) {
@@ -73,13 +42,10 @@ public with sharing class GoogleDocPreview {
             Log_Handler.store_Exception(e,'GoogleDocPreview','doPreview');
             return null;
         }
-
     }
 
     private static HttpResponse refreshAccessToken(AuthProviderSettings__c settings,HttpRequest requestPending) {
         try {
-            Datetime startTimerefreshAccessToken = Datetime.now();
-            
             System.debug('Refresh Access token');
             String ENDPOINT = 'https://oauth2.googleapis.com/token';
             HttpRequest request = new HttpRequest();
@@ -100,8 +66,6 @@ public with sharing class GoogleDocPreview {
                     requestPending.setHeader('Authorization','Bearer '+newToken);
                     Http httpPending = new Http();
                     HttpResponse responsePending = httpPending.send(requestPending);
-                    Datetime endTimerefreshAccessToken = Datetime.now();
-                    System.debug('final time refreshAccessToken: ' + (endTimerefreshAccessToken.getTime() - startTimerefreshAccessToken.getTime()));
                     return responsePending;
                 }
             }
@@ -235,10 +199,7 @@ public with sharing class GoogleDocPreview {
                     Map<String, Object> firstRow = (Map<String, Object>) newTableRows[0];
                     Map<String, Object> secondRow = (Map<String, Object>) newTableRows[1];
                     Map<String, Object> thirdRow = (Map<String, Object>) newTableRows[2];
-                    Datetime startTimegetTableRecords = Datetime.now();
                     List<List<String>> tableRecords = getTableRecords(secondRow,thirdRow,recordId,objectApiName);
-                    Datetime endTimegetTableRecords = Datetime.now();
-                    System.debug('final time getTableRecords: ' + (endTimegetTableRecords.getTime() - startTimegetTableRecords.getTime()));
                     tableNumber++;
                     if (tableRecords == null) {
                         System.debug('Null Table records');
